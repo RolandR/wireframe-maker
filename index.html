@@ -1,0 +1,30 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" /> 
+		<title>
+			Wireframe Maker
+		</title>
+		<link rel="stylesheet" type="text/css" media="all" href="./css/style.css" /> 
+		<link rel="stylesheet" type="text/css" media="all" href="./css/progressMonitor.css" /> 
+	</head>
+	<body>
+		<menu>
+			<h1>Wireframe Maker</h1>
+			<label for="file" class="button">Upload STL file<input type="file" id="file"></label>
+		</menu>
+		<div id="canvasContainer">
+			<canvas id="renderCanvas"></canvas>
+		</div>
+		
+		<script type="text/javascript" src="./js/matrix.js"></script>
+		<script type="text/javascript" src="./js/progressMonitor.js"></script>
+		<script type="text/javascript" src="./js/shaders/vertexshader.js"></script>
+		<script type="text/javascript" src="./js/shaders/fragmentshader.js"></script>
+		<script type="text/javascript" src="./js/gl.js"></script>
+		<script type="text/javascript" src="./js/controls.js"></script>
+		<script type="text/javascript" src="./js/viewer.js"></script>
+	</body>		
+</html>
+
