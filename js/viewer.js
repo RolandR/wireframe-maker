@@ -236,17 +236,6 @@ function process3dData(data){
 	
 	var span = max - min;
 	
-	//console.log(max, min, span);
-	
-	/*for(var i = 0; i < vertices.length; i++){
-		var n = i%3;
-		
-		vertices[i] = vertices[i] - spans[n]/2;
-		vertices[i] = vertices[i] / span;
-		
-	
-	}*/
-	
 	console.log("stl has "+vertices.length/3+" vertices");
 	
 	let points = [];
@@ -262,16 +251,21 @@ function process3dData(data){
 		
 		// deduplicate points
 		for(let vert = 0; vert < 9; vert += 3){
-			let point = [vertices[tri+vert], vertices[tri+vert+1], vertices[tri+vert+2]];
+			let point = {
+				x: vertices[tri+vert],
+				y: vertices[tri+vert+1],
+				z: vertices[tri+vert+2],
+				connections: [],
+			}
 			
 			let existingPointId = -1;
 			
 			for(let p in points){
-				if(Math.abs(point[0] - points[p][0]) < tolerance &&
-				   Math.abs(point[1] - points[p][1]) < tolerance &&
-				   Math.abs(point[2] - points[p][2]) < tolerance
+				if(Math.abs(point.x - points[p].x) < tolerance &&
+				   Math.abs(point.y - points[p].y) < tolerance &&
+				   Math.abs(point.z - points[p].z) < tolerance
 				){
-					existingPointId = p;
+					existingPointId = parseInt(p);
 					break;
 				}
 			}
@@ -287,15 +281,18 @@ function process3dData(data){
 		// build deduplicated edges from references to points
 		for(let e = 0; e < 3; e++){
 			
-			let edge = [trianglePoints[e], trianglePoints[(e+1)%3]];
+			let edge = {
+				a: trianglePoints[e],
+				b: trianglePoints[(e+1)%3],
+			};
 			let existingEdgeId = -1;
 			
 			for(let ed in edges){
 				
-				if((edges[ed][0] == edge[0] && edges[ed][1] == edge[1]) ||
-				   (edges[ed][0] == edge[1] && edges[ed][1] == edge[0])
+				if((edges[ed].a == edge.a && edges[ed].b == edge.b) ||
+				   (edges[ed].a == edge.b && edges[ed].b == edge.a)
 				){
-					existingEdgeId = ed;
+					existingEdgeId = parseInt(ed);
 					break;
 				}
 				
@@ -318,23 +315,32 @@ function process3dData(data){
 	console.log("stl has "+triangles.length+" triangles");
 	
 	let totalEdgeLength = 0;
-	let edgeLengths = [];
 	
 	for(let e in edges){
 		let distance = Math.sqrt(
-			Math.pow(points[edges[e][0]][0] - points[edges[e][1]][0], 2) +
-			Math.pow(points[edges[e][0]][1] - points[edges[e][1]][1], 2) +
-			Math.pow(points[edges[e][0]][2] - points[edges[e][1]][2], 2)
+			Math.pow(points[edges[e].a].x - points[edges[e].b].x, 2) +
+			Math.pow(points[edges[e].a].y - points[edges[e].b].y, 2) +
+			Math.pow(points[edges[e].a].z - points[edges[e].b].z, 2)
 		);
 		
-		edgeLengths.push(distance);
+		edges[e].edgeLength = distance;
+		
 		totalEdgeLength += distance;
+		
+		points[edges[e].a].connections.push(edges[e].b);
+		points[edges[e].b].connections.push(edges[e].a);
 	}
 	
-	console.log(edgeLengths.sort(function(a, b) {
-		return a - b;
-	}));
+	/*edges = edges.sort(function(a, b) {
+		return a.edgeLength - b.edgeLength;
+	});*/
+	console.log(edges);
 	console.log(totalEdgeLength);
+	
+	console.log(points.toSorted(function(a, b) {
+		return a.connections.length - b.connections.length;
+	}));
+	
 	
 	let model = {
 		vertices: vertices,

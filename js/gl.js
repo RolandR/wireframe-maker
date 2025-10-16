@@ -98,16 +98,14 @@ function Renderer(canvasId){
 		let vertexData = new Float32Array(size*2*3);
 		
 		for(let e in model.edges){
-			vertexData[e*2*3+0] = model.points[model.edges[e][0]][0];
-			vertexData[e*2*3+1] = model.points[model.edges[e][0]][1];
-			vertexData[e*2*3+2] = model.points[model.edges[e][0]][2];
+			vertexData[e*2*3+0] = model.points[model.edges[e].a].x;
+			vertexData[e*2*3+1] = model.points[model.edges[e].a].y;
+			vertexData[e*2*3+2] = model.points[model.edges[e].a].z;
 			
-			vertexData[e*2*3+3] = model.points[model.edges[e][1]][0];
-			vertexData[e*2*3+4] = model.points[model.edges[e][1]][1];
-			vertexData[e*2*3+5] = model.points[model.edges[e][1]][2];
+			vertexData[e*2*3+3] = model.points[model.edges[e].b].x;
+			vertexData[e*2*3+4] = model.points[model.edges[e].b].y;
+			vertexData[e*2*3+5] = model.points[model.edges[e].b].z;
 		}
-		
-		console.log(vertexData);
 		
 		gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, vertexData, gl.STATIC_DRAW);
