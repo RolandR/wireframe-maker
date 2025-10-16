@@ -13,6 +13,19 @@
 		<menu>
 			<h1>Wireframe Maker</h1>
 			<label for="file" class="button">Upload STL file<input type="file" id="file"></label>
+			<div id="fileInfoContainer">
+				<table>
+					<tr>
+						<td>Triangles:  </td><td id="triangleCount"></td>
+					</tr>
+					<tr>
+						<td>Edges:  </td><td id="edgeCount"></td>
+					</tr>
+					<tr>
+						<td>Vertices:  </td><td id="vertexCount"></td>
+					</tr>
+				</table>
+			</div>
 		</menu>
 		<div id="canvasContainer">
 			<canvas id="renderCanvas"></canvas>

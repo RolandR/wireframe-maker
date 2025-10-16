@@ -3,6 +3,10 @@ const renderer = new Renderer("renderCanvas");
 var controls;
 
 const fileInput = document.getElementById("file");
+const fileInfoContainer = document.getElementById("fileInfoContainer");
+const triangleCountEl = document.getElementById("triangleCount");
+const edgeCountEl = document.getElementById("edgeCount");
+const vertexCountEl = document.getElementById("vertexCount");
 
 const pMon = new ProgressMonitor(document.body, {
 	itemsCount: 2,
@@ -52,7 +56,12 @@ async function loadFile(file){
 	
 	let model = process3dData(parsedData);
 	
-	renderer.addVertices(model.vertices, model.normals);
+	triangleCountEl.innerHTML = model.triangles.length;
+	edgeCountEl.innerHTML = model.edges.length;
+	vertexCountEl.innerHTML = model.points.length;
+	fileInfoContainer.style.display = "block";
+	
+	renderer.addEdges(model);
 	
 	controls = new Controls();
 	
@@ -241,12 +250,72 @@ function process3dData(data){
 	console.log("stl has "+vertices.length/3+" vertices");
 	
 	let points = [];
+	let edges = [];
+	let triangles = [];
 	
-	for(let i = 0; i < vertices.length/3; i += 3){
+	const tolerance = 0.0001;
+	
+	for(let tri = 0; tri < vertices.length; tri += 9){
 		
+		let trianglePoints = [];
+		let triangleEdges = [];
 		
+		// deduplicate points
+		for(let vert = 0; vert < 9; vert += 3){
+			let point = [vertices[tri+vert], vertices[tri+vert+1], vertices[tri+vert+2]];
+			
+			let existingPointId = -1;
+			
+			for(let p in points){
+				if(Math.abs(point[0] - points[p][0]) < tolerance &&
+				   Math.abs(point[1] - points[p][1]) < tolerance &&
+				   Math.abs(point[2] - points[p][2]) < tolerance
+				){
+					existingPointId = p;
+					break;
+				}
+			}
+			
+			if(existingPointId === -1){
+				existingPointId = points.length;
+				points.push(point);
+			}
+			
+			trianglePoints.push(existingPointId);
+		}
 		
+		// build deduplicated edges from references to points
+		for(let e = 0; e < 3; e++){
+			
+			let edge = [trianglePoints[e], trianglePoints[(e+1)%3]];
+			let existingEdgeId = -1;
+			
+			for(let ed in edges){
+				
+				if((edges[ed][0] == edge[0] && edges[ed][1] == edge[1]) ||
+				   (edges[ed][0] == edge[1] && edges[ed][1] == edge[0])
+				){
+					existingEdgeId = ed;
+					break;
+				}
+				
+			}
+			
+			if(existingEdgeId === -1){
+				existingEdgeId = edges.length;
+				edges.push(edge);
+			}
+			
+			triangleEdges.push(existingEdgeId);
+			
+		}
+		
+		triangles.push(triangleEdges);
 	}
+	
+	console.log("stl has "+points.length+" points");
+	console.log("stl has "+edges.length+" edges");
+	console.log("stl has "+triangles.length+" triangles");
 	
 	
 	let model = {
@@ -258,6 +327,9 @@ function process3dData(data){
 		maxes: maxes,
 		mins: mins,
 		spans: spans,
+		points: points,
+		edges: edges,
+		triangles: triangles,
 	}
 	
 	return model;

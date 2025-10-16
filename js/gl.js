@@ -79,45 +79,42 @@ function Renderer(canvasId){
 
 
 		vertexBuffer = gl.createBuffer();
-		normalsBuffer = gl.createBuffer();
+		//normalsBuffer = gl.createBuffer();
 		//colorBuffer = gl.createBuffer();
 		
-	}
-
-	function addVertices(vertices, normals){
-
-		//console.log(vertices.length);
-		//console.log(normals.length);
-
-		/*==========Defining and storing the geometry=======*/
-
-		size = ~~(vertices.length/3);
-
-		//gl.deleteBuffer(vertexBuffer);
-		//vertexBuffer = gl.createBuffer();
-
-		
-		gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-		gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-		
-		var coord = gl.getAttribLocation(shaderProgram, "coordinates");
-		gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 0, 0);
-		gl.enableVertexAttribArray(coord);
-		
-
-		gl.bindBuffer(gl.ARRAY_BUFFER, normalsBuffer);
-		gl.bufferData(gl.ARRAY_BUFFER, normals, gl.STATIC_DRAW);
-		
-		var normal = gl.getAttribLocation(shaderProgram, "vertexNormal");
-		gl.vertexAttribPointer(normal, 3, gl.FLOAT, false, 0, 0);
-		gl.enableVertexAttribArray(normal);
-
 		maxDistanceRef = gl.getUniformLocation(shaderProgram, "maxDistance");
 		modelRef = gl.getUniformLocation(shaderProgram, "model");
 		viewRef = gl.getUniformLocation(shaderProgram, "view");
 		perspectiveRef = gl.getUniformLocation(shaderProgram, "perspective");
 		normalTransformRef = gl.getUniformLocation(shaderProgram, "normalTransform");
 		aspectRef = gl.getUniformLocation(shaderProgram, "aspect");
+		
+	}
+
+	function addEdges(model){
+		
+		size = model.edges.length*2;
+		
+		let vertexData = new Float32Array(size*2*3);
+		
+		for(let e in model.edges){
+			vertexData[e*2*3+0] = model.points[model.edges[e][0]][0];
+			vertexData[e*2*3+1] = model.points[model.edges[e][0]][1];
+			vertexData[e*2*3+2] = model.points[model.edges[e][0]][2];
+			
+			vertexData[e*2*3+3] = model.points[model.edges[e][1]][0];
+			vertexData[e*2*3+4] = model.points[model.edges[e][1]][1];
+			vertexData[e*2*3+5] = model.points[model.edges[e][1]][2];
+		}
+		
+		console.log(vertexData);
+		
+		gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, vertexData, gl.STATIC_DRAW);
+		
+		var coord = gl.getAttribLocation(shaderProgram, "coordinates");
+		gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 0, 0);
+		gl.enableVertexAttribArray(coord);
 
 	}
 	
@@ -158,11 +155,11 @@ function Renderer(canvasId){
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
 		// Draw the triangle
-		gl.drawArrays(gl.TRIANGLES, 0, size);
+		gl.drawArrays(gl.LINES, 0, size);
 	}
 
 	return{
-		 addVertices: addVertices
+		 addEdges: addEdges
 		,render: render
 	};
 

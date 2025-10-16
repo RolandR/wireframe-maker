@@ -92,3 +92,7 @@ input[type=file]{
 	box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.08);
 	background-color: #666666;
 }
+
+#fileInfoContainer{
+	display: none;
+}
