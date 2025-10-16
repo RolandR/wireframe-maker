@@ -317,6 +317,24 @@ function process3dData(data){
 	console.log("stl has "+edges.length+" edges");
 	console.log("stl has "+triangles.length+" triangles");
 	
+	let totalEdgeLength = 0;
+	let edgeLengths = [];
+	
+	for(let e in edges){
+		let distance = Math.sqrt(
+			Math.pow(points[edges[e][0]][0] - points[edges[e][1]][0], 2) +
+			Math.pow(points[edges[e][0]][1] - points[edges[e][1]][1], 2) +
+			Math.pow(points[edges[e][0]][2] - points[edges[e][1]][2], 2)
+		);
+		
+		edgeLengths.push(distance);
+		totalEdgeLength += distance;
+	}
+	
+	console.log(edgeLengths.sort(function(a, b) {
+		return a - b;
+	}));
+	console.log(totalEdgeLength);
 	
 	let model = {
 		vertices: vertices,
