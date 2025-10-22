@@ -8,6 +8,8 @@ const triangleCountEl = document.getElementById("triangleCount");
 const edgeCountEl = document.getElementById("edgeCount");
 const vertexCountEl = document.getElementById("vertexCount");
 
+const verticesContainer = document.getElementById("verticesContainer");
+
 const pMon = new ProgressMonitor(document.body, {
 	itemsCount: 2,
 	title: "Loading file..."
@@ -60,6 +62,21 @@ async function loadFile(file){
 	edgeCountEl.innerHTML = model.edges.length;
 	vertexCountEl.innerHTML = model.points.length;
 	fileInfoContainer.style.display = "block";
+	
+	for(let p in model.points){
+		
+		let pointInfoEl = document.createElement("div");
+		pointInfoEl.className = "pointInfo";
+		
+		pointInfoEl.innerHTML += "<h3>Corner "+p+"</h3>";
+		
+		pointInfoEl.innerHTML += "<p>Connected edges: "+model.points[p].connections.length+"</p>";
+		
+		verticesContainer.appendChild(pointInfoEl);
+		
+	}
+	
+	verticesContainer.style.display = "block";
 	
 	renderer.addEdges(model);
 	
