@@ -1,4 +1,12 @@
 
+const params = {
+	tubeOD: 0.02,
+	tubeID: 0.017,
+	stickout: 0.015,
+	margin: 0.005,
+}
+
+
 const renderer = new Renderer("renderCanvas");
 var controls;
 
@@ -77,8 +85,10 @@ async function loadFile(file){
 	}
 	
 	verticesContainer.style.display = "block";
+
+	let corner = buildCorner(model, 3, params);
 	
-	renderer.addEdges(model);
+	renderer.addTriangles(corner.triangles, corner.normals);
 	
 	controls = new Controls();
 	

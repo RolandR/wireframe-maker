@@ -79,7 +79,7 @@ function Renderer(canvasId){
 
 
 		vertexBuffer = gl.createBuffer();
-		//normalsBuffer = gl.createBuffer();
+		normalsBuffer = gl.createBuffer();
 		//colorBuffer = gl.createBuffer();
 		
 		maxDistanceRef = gl.getUniformLocation(shaderProgram, "maxDistance");
@@ -113,6 +113,30 @@ function Renderer(canvasId){
 		var coord = gl.getAttribLocation(shaderProgram, "coordinates");
 		gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 0, 0);
 		gl.enableVertexAttribArray(coord);
+
+	}
+	
+	function addTriangles(triangles, normals){
+		
+		size = triangles.length/3;
+		
+		let vertexData = new Float32Array(triangles);
+		
+		gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, vertexData, gl.STATIC_DRAW);
+		
+		var coord = gl.getAttribLocation(shaderProgram, "coordinates");
+		gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 0, 0);
+		gl.enableVertexAttribArray(coord);
+		
+		let normalsData = new Float32Array(normals);
+		
+		gl.bindBuffer(gl.ARRAY_BUFFER, normalsBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, normalsData, gl.STATIC_DRAW);
+		
+		var normal = gl.getAttribLocation(shaderProgram, "vertexNormal");
+		gl.vertexAttribPointer(normal, 3, gl.FLOAT, false, 0, 0);
+		gl.enableVertexAttribArray(normal);
 
 	}
 	
@@ -151,14 +175,19 @@ function Renderer(canvasId){
 		gl.viewport(0, 0, canvas.width, canvas.height);
 
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		
+		//gl.enable(gl.BLEND);
+		//gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+		//gl.blendFunc(gl.SRC_COLOR, gl.DST_COLOR);
 
 		// Draw the triangle
-		gl.drawArrays(gl.LINES, 0, size);
+		gl.drawArrays(gl.TRIANGLES, 0, size);
 	}
 
 	return{
-		 addEdges: addEdges
-		,render: render
+		addTriangles: addTriangles,
+		addEdges: addEdges,
+		render: render,
 	};
 
 }
