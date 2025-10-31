@@ -88,6 +88,8 @@ async function loadFile(file){
 
 	let corner = buildCorner(model, 10, params);
 	
+	generateStl(corner);
+	
 	renderer.addTriangles(corner.triangles, corner.normals);
 	
 	controls = new Controls();
@@ -135,8 +137,66 @@ function detectBinary(stl){
 }
 
 function generateStl(geometry){
-
+	const numTriangles = geometry.triangles.length/9;
+	const sizeBytes = 84+(numTriangles*50);
 	
+	console.log(numTriangles, sizeBytes);
+	
+	const buffer = new ArrayBuffer(sizeBytes);
+	const view = new DataView(buffer);
+	
+	for(let i = 0; i < 80; i++){
+		view.setUint8(i, 0);
+	}
+	view.setUint32(80, numTriangles, true);
+	
+	let text = "Wireframe tube holder bit thingy!";
+	let utf8Encode = new TextEncoder();
+	let textArray = utf8Encode.encode(text);
+	for(let i in textArray){
+		view.setUint8(i, textArray[i]);
+	}
+	
+	let byteOffset = 84;
+	
+	for(let t = 0; t < geometry.triangles.length; t += 9){
+			
+		// Normal vector
+		view.setFloat32(byteOffset+0, 0);
+		view.setFloat32(byteOffset+4, 0);
+		view.setFloat32(byteOffset+8, 0);
+		byteOffset += 12;
+		// Point C
+		view.setFloat32(byteOffset+0, geometry.triangles[t+0], true);
+		view.setFloat32(byteOffset+4, geometry.triangles[t+1], true);
+		view.setFloat32(byteOffset+8, geometry.triangles[t+2], true);
+		byteOffset += 12;
+		// Point B
+		view.setFloat32(byteOffset+0, geometry.triangles[t+3], true);
+		view.setFloat32(byteOffset+4, geometry.triangles[t+4], true);
+		view.setFloat32(byteOffset+8, geometry.triangles[t+5], true);
+		byteOffset += 12;
+		// Point A
+		view.setFloat32(byteOffset+0, geometry.triangles[t+6], true);
+		view.setFloat32(byteOffset+4, geometry.triangles[t+7], true);
+		view.setFloat32(byteOffset+8, geometry.triangles[t+8], true);
+		byteOffset += 12;
+		// Attribute byte count (always 0)
+		view.setUint16(byteOffset, 0);
+		byteOffset += 2;
+		
+	}
+	
+	console.log("byteOffset: "+byteOffset);
+	console.log("calculated: "+numTriangles+" Triangles, "+sizeBytes);
+	
+	var blob = new Blob([view.buffer], {type: "model/stl"});
+    var objectUrl = URL.createObjectURL(blob);
+	
+	const downloadLink = document.getElementById("downloadLink");
+	downloadLink.href = objectUrl;
+	downloadLink.download = "corner" + ".stl";
+	downloadLink.style.display = "block";
 	
 }
 
