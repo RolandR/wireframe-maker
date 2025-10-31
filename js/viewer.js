@@ -86,7 +86,7 @@ async function loadFile(file){
 	
 	verticesContainer.style.display = "block";
 
-	let corner = buildCorner(model, 3, params);
+	let corner = buildCorner(model, 10, params);
 	
 	renderer.addTriangles(corner.triangles, corner.normals);
 	
@@ -134,6 +134,11 @@ function detectBinary(stl){
 	}
 }
 
+function generateStl(geometry){
+
+	
+	
+}
 
 function parseBinaryStl(stl){
 	
