@@ -17,9 +17,13 @@ function triangulate(csgPolygons){
 				triangles.push(csgPolygons[p].vertices[v].pos.y);
 				triangles.push(csgPolygons[p].vertices[v].pos.z);
 				
-				normals.push(csgPolygons[p].vertices[v].normal.x);
-				normals.push(csgPolygons[p].vertices[v].normal.y);
-				normals.push(csgPolygons[p].vertices[v].normal.z);
+				//normals.push(csgPolygons[p].vertices[v].normal.x);
+				//normals.push(csgPolygons[p].vertices[v].normal.y);
+				//normals.push(csgPolygons[p].vertices[v].normal.z);
+				
+				normals.push(0);
+				normals.push(0);
+				normals.push(0);
 			}
 		} else {
 			for(let t = 2; t < csgPolygons[p].vertices.length; t++){
@@ -37,17 +41,30 @@ function triangulate(csgPolygons){
 				
 				
 				
-				normals.push(csgPolygons[p].vertices[0].normal.x);
-				normals.push(csgPolygons[p].vertices[0].normal.y);
-				normals.push(csgPolygons[p].vertices[0].normal.z);
+				//normals.push(csgPolygons[p].vertices[0].normal.x);
+				//normals.push(csgPolygons[p].vertices[0].normal.y);
+				//normals.push(csgPolygons[p].vertices[0].normal.z);
 				
-				normals.push(csgPolygons[p].vertices[t-1].normal.x);
-				normals.push(csgPolygons[p].vertices[t-1].normal.y);
-				normals.push(csgPolygons[p].vertices[t-1].normal.z);
+				//normals.push(csgPolygons[p].vertices[t-1].normal.x);
+				//normals.push(csgPolygons[p].vertices[t-1].normal.y);
+				//normals.push(csgPolygons[p].vertices[t-1].normal.z);
 				
-				normals.push(csgPolygons[p].vertices[t].normal.x);
-				normals.push(csgPolygons[p].vertices[t].normal.y);
-				normals.push(csgPolygons[p].vertices[t].normal.z);
+				//normals.push(csgPolygons[p].vertices[t].normal.x);
+				//normals.push(csgPolygons[p].vertices[t].normal.y);
+				//normals.push(csgPolygons[p].vertices[t].normal.z);
+				
+				
+				normals.push(0);
+				normals.push(0);
+				normals.push(0);
+				
+				normals.push(0);
+				normals.push(0);
+				normals.push(0);
+				
+				normals.push(0);
+				normals.push(0);
+				normals.push(0);
 			}
 		}
 		
