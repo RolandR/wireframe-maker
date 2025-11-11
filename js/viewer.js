@@ -4,6 +4,7 @@ const params = {
 	tubeID: 0.017,
 	stickout: 0.015,
 	margin: 0.005,
+	hollowDiameter: 0.012,
 }
 
 let model = {};

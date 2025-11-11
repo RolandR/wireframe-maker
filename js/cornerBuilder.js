@@ -3,14 +3,15 @@ function buildCorner(wireframe, index, params){
 
 	let corner = CSG.sphere({
 		center: [0, 0, 0],
-		radius: params.tubeOD/2,
-		slices: 16,
-		stacks: 8
+		radius: (params.tubeOD/2)*1.01,
+		resolution: 32,
 	});
 	
 	let xPos = wireframe.points[index].x;
 	let yPos = wireframe.points[index].y;
 	let zPos = wireframe.points[index].z;
+	
+	let hollowCylinders = [];
 	
 	for(let i in wireframe.points[index].connections){
 		
@@ -70,30 +71,11 @@ function buildCorner(wireframe, index, params){
 		let cylinder = CSG.cylinder({
 			start: [0, 0, 0],
 			end: [
-				//unitToX*(calculatedLength+params.margin),
-				//unitToY*(calculatedLength+params.margin),
-				//unitToZ*(calculatedLength+params.margin),
-				unitToX*(i*0.02+0.03),
-				unitToY*(i*0.02+0.03),
-				unitToZ*(i*0.02+0.03),
-			],
-			radius: 0.002,
-			//radius: params.tubeOD/2,
-			slices: 16
-		});
-		
-		corner = corner.union(cylinder);
-		
-		
-		let actualcylinder = CSG.cylinder({
-			start: [0, 0, 0],
-			end: [
 				0,
 				0,
-				(i*0.02+0.035),
+				calculatedLength+params.margin,
 			],
-			radius: 0.001,
-			//radius: params.tubeOD/2,
+			radius: params.tubeOD/2,
 			slices: 16
 		});
 		
@@ -102,32 +84,56 @@ function buildCorner(wireframe, index, params){
 		if(unitToZ < 0){
 			yAngle = 180-yAngle;
 		}
-		actualcylinder = actualcylinder.rotateY(yAngle);
+		cylinder = cylinder.rotateY(yAngle);
 		
 		
 		let zAngle = Math.asin(unitToY/distanceFromZAxis)*180/Math.PI;
 		if(unitToX < 0){
 			zAngle = 180-zAngle;
 		}
-		actualcylinder = actualcylinder.rotateZ(zAngle);
+		cylinder = cylinder.rotateZ(zAngle);
 		
-		console.log(unitToX, unitToY, unitToZ);
-		console.log(yAngle);
+		corner = corner.union(cylinder);
 		
-		corner = corner.union(actualcylinder);
-		
-		/*let smallerCylinder = CSG.cylinder({
-			start: [unitToX*calculatedLength*0.9, unitToY*calculatedLength*0.9, unitToZ*calculatedLength*0.9],
+		let smallerCylinder = CSG.cylinder({
+			start: [0, 0, calculatedLength],
 			end: [
-				unitToX*(calculatedLength+params.stickout+params.margin),
-				unitToY*(calculatedLength+params.stickout+params.margin),
-				unitToZ*(calculatedLength+params.stickout+params.margin)
+				0,
+				0,
+				calculatedLength+params.stickout+params.margin,
 			],
 			radius: params.tubeID/2,
 			slices: 16
 		});
+		smallerCylinder = smallerCylinder.rotateY(yAngle);
+		smallerCylinder = smallerCylinder.rotateZ(zAngle);
 		
-		corner = corner.union(smallerCylinder);*/
+		corner = corner.union(smallerCylinder);
+		
+		let hollowCylinder = CSG.cylinder({
+			start: [0, 0, 0],
+			end: [
+				0,
+				0,
+				calculatedLength+params.stickout+params.margin*2,
+			],
+			radius: params.hollowDiameter/2,
+			slices: 16
+		});
+		hollowCylinder = hollowCylinder.rotateY(yAngle);
+		hollowCylinder = hollowCylinder.rotateZ(zAngle);
+		hollowCylinders.push(hollowCylinder);
+	}
+	
+	let hollowCenter = CSG.sphere({
+		center: [0, 0, 0],
+		radius: (params.hollowDiameter/2)*1.01,
+		resolution: 32,
+	});
+	corner = corner.subtract(hollowCenter);
+	
+	for(let i in hollowCylinders){
+		corner = corner.subtract(hollowCylinders[i]);
 	}
 	
 	return triangulate(corner.toPolygons());
