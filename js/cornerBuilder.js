@@ -104,7 +104,11 @@ function buildCorner(wireframe, index, params){
 		}
 		actualcylinder = actualcylinder.rotateY(yAngle);
 		
-		let zAngle = Math.asin(unitToY)*180/Math.PI;
+		
+		let zAngle = Math.asin(unitToY/distanceFromZAxis)*180/Math.PI;
+		if(unitToX < 0){
+			zAngle = 180-zAngle;
+		}
 		actualcylinder = actualcylinder.rotateZ(zAngle);
 		
 		console.log(unitToX, unitToY, unitToZ);
