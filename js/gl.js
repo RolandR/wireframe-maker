@@ -137,6 +137,8 @@ function Renderer(canvasId){
 		var normal = gl.getAttribLocation(shaderProgram, "vertexNormal");
 		gl.vertexAttribPointer(normal, 3, gl.FLOAT, false, 0, 0);
 		gl.enableVertexAttribArray(normal);
+		
+		
 
 	}
 	

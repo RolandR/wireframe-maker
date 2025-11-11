@@ -61,6 +61,8 @@ function buildCorner(wireframe, index, params){
 			
 		}
 		
+		i = parseInt(i);
+		
 		let smallestAngle = Math.acos(maxDotProduct);
 		
 		let calculatedLength = params.tubeOD/2 * (1/Math.tan(smallestAngle/2));
@@ -68,17 +70,49 @@ function buildCorner(wireframe, index, params){
 		let cylinder = CSG.cylinder({
 			start: [0, 0, 0],
 			end: [
-				unitToX*(calculatedLength+params.margin),
-				unitToY*(calculatedLength+params.margin),
-				unitToZ*(calculatedLength+params.margin),
+				//unitToX*(calculatedLength+params.margin),
+				//unitToY*(calculatedLength+params.margin),
+				//unitToZ*(calculatedLength+params.margin),
+				unitToX*(i*0.02+0.03),
+				unitToY*(i*0.02+0.03),
+				unitToZ*(i*0.02+0.03),
 			],
-			radius: params.tubeOD/2,
+			radius: 0.002,
+			//radius: params.tubeOD/2,
 			slices: 16
 		});
 		
 		corner = corner.union(cylinder);
 		
-		let smallerCylinder = CSG.cylinder({
+		
+		let actualcylinder = CSG.cylinder({
+			start: [0, 0, 0],
+			end: [
+				0,
+				0,
+				(i*0.02+0.035),
+			],
+			radius: 0.001,
+			//radius: params.tubeOD/2,
+			slices: 16
+		});
+		
+		let distanceFromZAxis = Math.sqrt(Math.pow(unitToX, 2) + Math.pow(unitToY, 2));
+		let yAngle = Math.asin(distanceFromZAxis)*180/Math.PI;
+		if(unitToZ < 0){
+			yAngle = 180-yAngle;
+		}
+		actualcylinder = actualcylinder.rotateY(yAngle);
+		
+		let zAngle = Math.asin(unitToY)*180/Math.PI;
+		actualcylinder = actualcylinder.rotateZ(zAngle);
+		
+		console.log(unitToX, unitToY, unitToZ);
+		console.log(yAngle);
+		
+		corner = corner.union(actualcylinder);
+		
+		/*let smallerCylinder = CSG.cylinder({
 			start: [unitToX*calculatedLength*0.9, unitToY*calculatedLength*0.9, unitToZ*calculatedLength*0.9],
 			end: [
 				unitToX*(calculatedLength+params.stickout+params.margin),
@@ -89,7 +123,7 @@ function buildCorner(wireframe, index, params){
 			slices: 16
 		});
 		
-		corner = corner.union(smallerCylinder);
+		corner = corner.union(smallerCylinder);*/
 	}
 	
 	return triangulate(corner.toPolygons());

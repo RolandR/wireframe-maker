@@ -6,6 +6,7 @@ const params = {
 	margin: 0.005,
 }
 
+let model = {};
 
 const renderer = new Renderer("renderCanvas");
 var controls;
@@ -64,7 +65,7 @@ async function loadFile(file){
 	
 	let parsedData = detectBinary(loadedFile);
 	
-	let model = process3dData(parsedData);
+	model = process3dData(parsedData);
 	
 	triangleCountEl.innerHTML = model.triangles.length;
 	edgeCountEl.innerHTML = model.edges.length;
@@ -80,22 +81,43 @@ async function loadFile(file){
 		
 		pointInfoEl.innerHTML += "<p>Connected edges: "+model.points[p].connections.length+"</p>";
 		
+		pointInfoEl.addEventListener("click", function(e){
+			
+			let pointInfoElements = document.getElementsByClassName("pointInfo");
+			for(let el in pointInfoElements){
+				pointInfoElements[el].className = "pointInfo";
+			}
+			
+			pointInfoEl.className = "pointInfo pointInfoActive";
+			
+			buildAndShowCorner(p);
+			
+		});
+		
 		verticesContainer.appendChild(pointInfoEl);
 		
 	}
 	
 	verticesContainer.style.display = "block";
 
-	let corner = buildCorner(model, 10, params);
 	
-	generateStl(corner);
-	
-	renderer.addTriangles(corner.triangles, corner.normals);
 	
 	controls = new Controls();
 	
 	await pMon.postMessage("Done!", "success");
 	await pMon.finish(0, 500);
+}
+
+function buildAndShowCorner(cornerId){
+	
+	let corner = buildCorner(model, cornerId, params);
+	
+	generateStl(corner);
+	
+	renderer.addTriangles(corner.triangles, corner.normals);
+	
+	controls.update();
+	
 }
 
 function detectBinary(stl){
@@ -137,6 +159,9 @@ function detectBinary(stl){
 }
 
 function generateStl(geometry){
+	
+	let exportScale = 100;
+	
 	const numTriangles = geometry.triangles.length/9;
 	const sizeBytes = 84+(numTriangles*50);
 	
@@ -167,19 +192,19 @@ function generateStl(geometry){
 		view.setFloat32(byteOffset+8, 0);
 		byteOffset += 12;
 		// Point C
-		view.setFloat32(byteOffset+0, geometry.triangles[t+0], true);
-		view.setFloat32(byteOffset+4, geometry.triangles[t+1], true);
-		view.setFloat32(byteOffset+8, geometry.triangles[t+2], true);
+		view.setFloat32(byteOffset+0, geometry.triangles[t+0]*exportScale, true);
+		view.setFloat32(byteOffset+4, geometry.triangles[t+1]*exportScale, true);
+		view.setFloat32(byteOffset+8, geometry.triangles[t+2]*exportScale, true);
 		byteOffset += 12;
 		// Point B
-		view.setFloat32(byteOffset+0, geometry.triangles[t+3], true);
-		view.setFloat32(byteOffset+4, geometry.triangles[t+4], true);
-		view.setFloat32(byteOffset+8, geometry.triangles[t+5], true);
+		view.setFloat32(byteOffset+0, geometry.triangles[t+3]*exportScale, true);
+		view.setFloat32(byteOffset+4, geometry.triangles[t+4]*exportScale, true);
+		view.setFloat32(byteOffset+8, geometry.triangles[t+5]*exportScale, true);
 		byteOffset += 12;
 		// Point A
-		view.setFloat32(byteOffset+0, geometry.triangles[t+6], true);
-		view.setFloat32(byteOffset+4, geometry.triangles[t+7], true);
-		view.setFloat32(byteOffset+8, geometry.triangles[t+8], true);
+		view.setFloat32(byteOffset+0, geometry.triangles[t+6]*exportScale, true);
+		view.setFloat32(byteOffset+4, geometry.triangles[t+7]*exportScale, true);
+		view.setFloat32(byteOffset+8, geometry.triangles[t+8]*exportScale, true);
 		byteOffset += 12;
 		// Attribute byte count (always 0)
 		view.setUint16(byteOffset, 0);

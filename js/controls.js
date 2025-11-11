@@ -9,6 +9,7 @@ function Controls(){
 	var rotationY = 0;
 	var currentRotationX = 0;
 	var currentRotationY = 0;
+	let scale = 1;
 
 	var mouseDown = false;
 	var startX = 0;
@@ -74,6 +75,14 @@ function Controls(){
 			0,       0,        0,     1
 		]);
 		
+		let scaleTransform = [
+			scale, 0, 0, 0,
+			0, scale, 0, 0,
+			0, 0, scale, 0,
+			0, 0, 0, 1
+		];
+		modelTransforms.push(scaleTransform);
+		
 		var model = multiplyArrayOfMatrices(modelTransforms);
 
 		var f = 1.0 / Math.tan(fieldOfViewInRadians / 2);
@@ -115,10 +124,21 @@ function Controls(){
 		mouseDown = false;
 		rotationX += currentRotationX;
 		rotationY += currentRotationY;
+		currentRotationX = 0;
+		currentRotationY = 0;
+		update();
+		e.preventDefault();
+	});
+	
+	canvas.addEventListener('wheel', function(e) {
+		scale -= scale * 0.001 * e.deltaY;
+		update();
 		e.preventDefault();
 	});
 
 
-
+	return {
+		update: update,
+	};
 	
 }
