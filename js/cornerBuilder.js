@@ -1,5 +1,5 @@
 
-function buildCorner(wireframe, index, params){
+function buildCorner(wireframe, index, params, letterShapes){
 
 	let corner = CSG.sphere({
 		center: [0, 0, 0],
@@ -15,7 +15,10 @@ function buildCorner(wireframe, index, params){
 	
 	for(let i in wireframe.points[index].connections){
 		
-		let other = wireframe.points[wireframe.points[index].connections[i]];
+		
+		let otherId = wireframe.points[index].connections[i].point;
+		let edgeId = wireframe.points[index].connections[i].edge;
+		let other = wireframe.points[otherId];
 		let toX = other.x - xPos;
 		let toY = other.y - yPos;
 		let toZ = other.z - zPos;
@@ -40,7 +43,7 @@ function buildCorner(wireframe, index, params){
 				continue;
 			}
 			
-			let otherOther = wireframe.points[wireframe.points[index].connections[o]]; // variable names!
+			let otherOther = wireframe.points[wireframe.points[index].connections[o].point]; // variable names!
 			
 			let toOtherX = otherOther.x - xPos;
 			let toOtherY = otherOther.y - yPos;
@@ -105,6 +108,27 @@ function buildCorner(wireframe, index, params){
 			radius: params.tubeID/2,
 			slices: 16
 		});
+		
+		let text = setText(index + " " + edgeId + " " + otherId);
+		
+		let textMargin = 0.001;
+		
+		if(text.width+2*textMargin > params.stickout){
+			let factor = (params.stickout)/(text.width+2*textMargin);
+			text.letters = text.letters.scale([factor, factor, 1]);
+			//text.letters = text.letters.scale(factor);
+		}
+		
+		text = text.letters
+			.rotateX(90)
+			.rotateY(90)
+			.translate([0, params.tubeID/2, calculatedLength+params.stickout+params.margin-textMargin]);
+			
+			
+		smallerCylinder = smallerCylinder.subtract(text);
+		smallerCylinder = smallerCylinder.subtract(text.rotateZ(120));
+		smallerCylinder = smallerCylinder.subtract(text.rotateZ(240));
+		
 		smallerCylinder = smallerCylinder.rotateY(yAngle);
 		smallerCylinder = smallerCylinder.rotateZ(zAngle);
 		
@@ -136,8 +160,49 @@ function buildCorner(wireframe, index, params){
 		corner = corner.subtract(hollowCylinders[i]);
 	}
 	
+	console.log(corner);
+	
 	return triangulate(corner.toPolygons());
 	
 }
 
 
+function setText(text){
+	
+	const letterWidth = 0.002;
+	const letterHeight = 0.003;
+	
+	let letters = [];
+	for(let i in text){
+		let letter = text[i];
+		
+		if(letterShapes.hasOwnProperty(letter)){
+			let letterShape = letterShapes[letter]
+				.scale(letterHeight)
+				.translate([i*letterWidth+letterWidth/2, 0, 0]);
+			
+			letters.push(letterShape);
+		}
+	}
+	
+	let combinedLetters = letters[0];
+	
+	for(let i = 1; i < letters.length; i++){
+		combinedLetters = combinedLetters.union(letters[i]);
+	}
+	
+	let textWidth = text.length*letterWidth;
+	let textHeight = letterHeight;
+	
+	return {
+		letters: combinedLetters,
+		width: textWidth,
+		height: textHeight,
+	};
+	
+}
+
+
+//.rotateX(90)
+//.rotateY(90)
+//.translate([0, params.tubeID/2, calculatedLength+params.stickout+params.margin])

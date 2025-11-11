@@ -3,7 +3,7 @@ const params = {
 	tubeOD: 0.02,
 	tubeID: 0.017,
 	stickout: 0.015,
-	margin: 0.005,
+	margin: 0.001,
 	hollowDiameter: 0.012,
 }
 
@@ -19,6 +19,22 @@ const edgeCountEl = document.getElementById("edgeCount");
 const vertexCountEl = document.getElementById("vertexCount");
 
 const verticesContainer = document.getElementById("verticesContainer");
+
+let letterShapes = {};
+
+loadAlphabet();
+
+async function loadAlphabet(){
+	
+	for(let i = 0; i <= 9; i++){
+		let url = "./models/numbers/number"+i+".stl";
+		
+		letterShapes[i] = await loadShape(url);
+		
+	}
+	
+}
+
 
 const pMon = new ProgressMonitor(document.body, {
 	itemsCount: 2,
@@ -100,8 +116,6 @@ async function loadFile(file){
 	}
 	
 	verticesContainer.style.display = "block";
-
-	
 	
 	controls = new Controls();
 	
@@ -109,9 +123,48 @@ async function loadFile(file){
 	await pMon.finish(0, 500);
 }
 
+async function loadShape(url){
+	
+	try {
+		const response = await fetch(url);
+		if (!response.ok) {
+			throw new Error(`Response status: ${response.status}`);
+		}
+
+		const result = await response.arrayBuffer();
+		let shape = detectBinary(result);
+		console.log(shape);
+		
+		
+		let triangles = [];
+		
+		for(let i = 0; i < shape.vertices.length; i += 9){
+			
+			triangles.push(
+				CSG.Polygon.createFromPoints([
+					[shape.vertices[i+0], shape.vertices[i+1], shape.vertices[i+2]],
+					[shape.vertices[i+3], shape.vertices[i+4], shape.vertices[i+5]],
+					[shape.vertices[i+6], shape.vertices[i+7], shape.vertices[i+8]],
+				])
+			);
+			
+		}
+		
+		let csgShape = CSG.fromPolygons(triangles);
+		
+		console.log(csgShape);
+		
+		return csgShape;
+		
+	} catch (error) {
+		console.error(error.message);
+	}
+	
+}
+
 function buildAndShowCorner(cornerId){
 	
-	let corner = buildCorner(model, cornerId, params);
+	let corner = buildCorner(model, cornerId, params, letterShapes);
 	
 	generateStl(corner);
 	
@@ -445,8 +498,14 @@ function process3dData(data){
 		
 		totalEdgeLength += distance;
 		
-		points[edges[e].a].connections.push(edges[e].b);
-		points[edges[e].b].connections.push(edges[e].a);
+		points[edges[e].a].connections.push({
+			point: edges[e].b,
+			edge: e,
+		});
+		points[edges[e].b].connections.push({
+			point: edges[e].a,
+			edge: e,
+		});
 	}
 	
 	/*edges = edges.sort(function(a, b) {
