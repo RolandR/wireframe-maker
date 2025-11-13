@@ -1,7 +1,7 @@
 
 const params = {
 	tubeOD: 0.02,
-	tubeID: 0.017,
+	tubeID: 0.0165,
 	stickout: 0.015,
 	margin: 0.001,
 	hollowDiameter: 0.012,
@@ -214,7 +214,7 @@ function detectBinary(stl){
 
 function generateStl(geometry){
 	
-	let exportScale = 100;
+	let exportScale = -1000;
 	
 	const numTriangles = geometry.triangles.length/9;
 	const sizeBytes = 84+(numTriangles*50);
