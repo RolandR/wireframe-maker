@@ -119,6 +119,10 @@ async function loadFile(file){
 	
 	controls = new Controls();
 	
+	renderer.addEdges(model);
+	
+	controls.update();
+	
 	await pMon.postMessage("Done!", "success");
 	await pMon.finish(0, 500);
 }

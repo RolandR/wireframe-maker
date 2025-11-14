@@ -143,23 +143,6 @@ function Renderer(canvasId){
 	}
 	
 	function render(model, view, perspective){
-
-		/*if(!interpolation){
-			interpolation = 0;
-		}
-
-		var identityMatrix = [
-			1, 0, 0, 0,
-			0, 1, 0, 0,
-			0, 0, 1, 0,
-			0, 0, 0, 1
-		];*/
-
-		//console.table(transforms);
-
-		/*for(var i in transformMatrix){
-			transformMatrix[i] = transformMatrix[i] * (1-interpolation) + identityMatrix[i] * interpolation;
-		}*/
 		
 		var normalsMatrix = normalMatrix(model);
 
@@ -185,11 +168,39 @@ function Renderer(canvasId){
 		// Draw the triangle
 		gl.drawArrays(gl.TRIANGLES, 0, size);
 	}
+	
+	function renderLines(model, view, perspective){
+		
+		var normalsMatrix = normalMatrix(model);
+
+		gl.uniform1f(maxDistanceRef, 3.0);
+		
+		gl.uniformMatrix4fv(modelRef, false, model);
+		gl.uniformMatrix4fv(viewRef, false, view);
+		gl.uniformMatrix4fv(perspectiveRef, false, perspective);
+		gl.uniformMatrix4fv(normalTransformRef, false, normalsMatrix);
+		gl.uniform1f(aspectRef, canvas.width/canvas.height);
+
+		// Clear the canvas
+		gl.clearColor(0, 0, 0, 0);
+		
+		gl.viewport(0, 0, canvas.width, canvas.height);
+
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		
+		//gl.enable(gl.BLEND);
+		//gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+		//gl.blendFunc(gl.SRC_COLOR, gl.DST_COLOR);
+
+		// Draw the triangle
+		gl.drawArrays(gl.LINES, 0, size);
+	}
 
 	return{
 		addTriangles: addTriangles,
 		addEdges: addEdges,
 		render: render,
+		renderLines: renderLines,
 	};
 
 }
