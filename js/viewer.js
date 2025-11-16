@@ -111,6 +111,13 @@ async function loadFile(file){
 			
 		});
 		
+		pointInfoEl.addEventListener("mouseenter", function(e){
+			
+			renderer.highlightVertex(p);
+			controls.update();
+			
+		});
+		
 		verticesContainer.appendChild(pointInfoEl);
 		
 	}

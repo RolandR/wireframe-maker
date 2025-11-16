@@ -13,8 +13,10 @@ uniform float maxDistance;
 
 attribute vec3 coordinates;
 attribute vec3 vertexNormal;
+attribute vec3 vertexColor;
 
 varying highp vec3 lighting;
+varying vec3 varColor;
 varying float fogness;
 
 void main(void){
@@ -30,7 +32,7 @@ void main(void){
 	
 	//float specular = min(dot(viewVector.xyz, reflect(directionalVector, normalize(vertexNormal.xzy))), 0.0);
 	//specular = pow(specular, 4.0);
-		
+	
 		
     //lighting = ambientLight + (directionalLightColor * directional * 1.0) + (directionalLightColor * specular * 0.8);
     
@@ -43,6 +45,8 @@ void main(void){
 	//fogness = clamp(length(coords)/maxDistance, 0.0, 1.0);
 	
 	//lighting = ambientLight*(1.0-fogness);
+	
+	varColor = vertexColor;
 	
 	gl_Position = coords;
 }

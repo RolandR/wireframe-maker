@@ -13,10 +13,17 @@ function Renderer(canvasId){
 
 	var vertexBuffer;
 	var normalsBuffer;
+	var colorBuffer;
 
 	var transformMatrixRef;
 	var normalTransformRef;
 	var aspectRef;
+	
+	let model;
+	let highlightedIndex = null;
+	let highlightColor = [1.0, 0.7, 0.0];
+	let defaultColor = [0.5, 0.5, 0.5];
+	let colorData;
 	
 	init();
 
@@ -80,7 +87,7 @@ function Renderer(canvasId){
 
 		vertexBuffer = gl.createBuffer();
 		normalsBuffer = gl.createBuffer();
-		//colorBuffer = gl.createBuffer();
+		colorBuffer = gl.createBuffer();
 		
 		maxDistanceRef = gl.getUniformLocation(shaderProgram, "maxDistance");
 		modelRef = gl.getUniformLocation(shaderProgram, "model");
@@ -90,12 +97,64 @@ function Renderer(canvasId){
 		aspectRef = gl.getUniformLocation(shaderProgram, "aspect");
 		
 	}
+	
+	function highlightVertex(index){
+		
+		if(highlightedIndex === index){
+			return;
+		}
+		
+		for(let e in model.edges){
+			
+			if(model.edges[e].a == highlightedIndex){
+				
+				colorData[e*2*3+0] = defaultColor[0];
+				colorData[e*2*3+1] = defaultColor[1];
+				colorData[e*2*3+2] = defaultColor[2];
+				
+			}
+			
+			if(model.edges[e].a == index){
+				
+				colorData[e*2*3+0] = highlightColor[0];
+				colorData[e*2*3+1] = highlightColor[1];
+				colorData[e*2*3+2] = highlightColor[2];
+				
+			}
+			
+			if(model.edges[e].b == highlightedIndex){
+				
+				colorData[e*2*3+3] = defaultColor[0];
+				colorData[e*2*3+4] = defaultColor[1];
+				colorData[e*2*3+5] = defaultColor[2];
+				
+			}
+			
+			if(model.edges[e].b == index){
+				
+				colorData[e*2*3+3] = highlightColor[0];
+				colorData[e*2*3+4] = highlightColor[1];
+				colorData[e*2*3+5] = highlightColor[2];
+				
+			}
+			
+		}
+		
+		gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, colorData, gl.STATIC_DRAW);
+		
+		highlightedIndex = index;
+		
+	}
 
-	function addEdges(model){
+	function addEdges(mdl){
+		
+		model = mdl;
 		
 		size = model.edges.length*2;
 		
 		let vertexData = new Float32Array(size*2*3);
+		colorData = new Float32Array(size*2*3);
 		
 		for(let e in model.edges){
 			vertexData[e*2*3+0] = model.points[model.edges[e].a].x;
@@ -105,6 +164,14 @@ function Renderer(canvasId){
 			vertexData[e*2*3+3] = model.points[model.edges[e].b].x;
 			vertexData[e*2*3+4] = model.points[model.edges[e].b].y;
 			vertexData[e*2*3+5] = model.points[model.edges[e].b].z;
+			
+			colorData[e*2*3+0] = defaultColor[0];
+			colorData[e*2*3+1] = defaultColor[1];
+			colorData[e*2*3+2] = defaultColor[2];
+			
+			colorData[e*2*3+3] = defaultColor[0];
+			colorData[e*2*3+4] = defaultColor[1];
+			colorData[e*2*3+5] = defaultColor[2];
 		}
 		
 		gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
@@ -113,6 +180,13 @@ function Renderer(canvasId){
 		var coord = gl.getAttribLocation(shaderProgram, "coordinates");
 		gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 0, 0);
 		gl.enableVertexAttribArray(coord);
+		
+		gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, colorData, gl.STATIC_DRAW);
+		
+		var colorAttrib = gl.getAttribLocation(shaderProgram, "vertexColor");
+		gl.vertexAttribPointer(colorAttrib, 3, gl.FLOAT, false, 0, 0);
+		gl.enableVertexAttribArray(colorAttrib);
 
 	}
 	
@@ -169,13 +243,13 @@ function Renderer(canvasId){
 		gl.drawArrays(gl.TRIANGLES, 0, size);
 	}
 	
-	function renderLines(model, view, perspective){
+	function renderLines(modelMatrix, view, perspective){
 		
-		var normalsMatrix = normalMatrix(model);
+		var normalsMatrix = normalMatrix(modelMatrix);
 
 		gl.uniform1f(maxDistanceRef, 3.0);
 		
-		gl.uniformMatrix4fv(modelRef, false, model);
+		gl.uniformMatrix4fv(modelRef, false, modelMatrix);
 		gl.uniformMatrix4fv(viewRef, false, view);
 		gl.uniformMatrix4fv(perspectiveRef, false, perspective);
 		gl.uniformMatrix4fv(normalTransformRef, false, normalsMatrix);
@@ -201,6 +275,7 @@ function Renderer(canvasId){
 		addEdges: addEdges,
 		render: render,
 		renderLines: renderLines,
+		highlightVertex: highlightVertex,
 	};
 
 }
