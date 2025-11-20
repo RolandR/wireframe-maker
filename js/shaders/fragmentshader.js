@@ -9,7 +9,7 @@ varying vec3 varColor;
 void main(void){
 	//vec3 color = vec3(1.0, 0.7, 0.2);
 	vec3 color = varColor;
-	//color = color * lighting;
+	color = color * lighting;
 	gl_FragColor = vec4(color, 1.0);
 }
 `;

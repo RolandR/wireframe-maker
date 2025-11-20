@@ -89,14 +89,18 @@ async function loadFile(file){
 	vertexCountEl.innerHTML = model.points.length;
 	fileInfoContainer.style.display = "block";
 	
-	for(let p in model.points){
+	let sortedPoints = model.points.toSorted(function(a, b) {
+		return a.displayId - b.displayId;
+	});
+	
+	for(let p in sortedPoints){
 		
 		let pointInfoEl = document.createElement("div");
 		pointInfoEl.className = "pointInfo";
 		
 		pointInfoEl.innerHTML += "<h3>Corner "+p+"</h3>";
 		
-		pointInfoEl.innerHTML += "<p>Connected edges: "+model.points[p].connections.length+"</p>";
+		pointInfoEl.innerHTML += "<p>Connected edges: "+sortedPoints[p].connections.length+"</p>";
 		
 		pointInfoEl.addEventListener("click", function(e){
 			
@@ -107,13 +111,14 @@ async function loadFile(file){
 			
 			pointInfoEl.className = "pointInfo pointInfoActive";
 			
-			buildAndShowCorner(p);
+			renderer.setMode("triangles");
+			buildAndShowCorner(sortedPoints[p].listId);
 			
 		});
 		
 		pointInfoEl.addEventListener("mouseenter", function(e){
 			
-			renderer.highlightVertex(p);
+			renderer.highlightVertex(sortedPoints[p].listId);
 			controls.update();
 			
 		});
@@ -177,7 +182,7 @@ function buildAndShowCorner(cornerId){
 	
 	let corner = buildCorner(model, cornerId, params, letterShapes);
 	
-	generateStl(corner);
+	generateStl(corner, model.points[cornerId].displayId);
 	
 	renderer.addTriangles(corner.triangles, corner.normals);
 	
@@ -223,7 +228,7 @@ function detectBinary(stl){
 	}
 }
 
-function generateStl(geometry){
+function generateStl(geometry, displayId){
 	
 	let exportScale = -1000;
 	
@@ -285,7 +290,7 @@ function generateStl(geometry){
 	
 	const downloadLink = document.getElementById("downloadLink");
 	downloadLink.href = objectUrl;
-	downloadLink.download = "corner" + ".stl";
+	downloadLink.download = "corner" + displayId + ".stl";
 	downloadLink.style.display = "block";
 	
 }
@@ -519,15 +524,40 @@ function process3dData(data){
 		});
 	}
 	
+	for(let p in points){
+		points[p].listId = p;
+	}
+	
 	/*edges = edges.sort(function(a, b) {
 		return a.edgeLength - b.edgeLength;
 	});*/
-	console.log(edges);
+	
+	
 	console.log(totalEdgeLength);
 	
 	console.log(points.toSorted(function(a, b) {
 		return a.connections.length - b.connections.length;
 	}));
+	
+	
+	let pointsSortedByPosition = points.toSorted(function(a, b) {
+		return a.x - b.x;
+	});
+	
+	for(let i in pointsSortedByPosition){
+		pointsSortedByPosition[i].displayId = i;
+	}
+	
+	let edgesSortedByLength = edges.toSorted(function(a, b) {
+		return a.edgeLength - b.edgeLength;
+	});
+	
+	for(let i in edgesSortedByLength){
+		edgesSortedByLength[i].displayId = i;
+	}
+	
+	console.log(edges);
+	console.log(points);
 	
 	
 	let model = {

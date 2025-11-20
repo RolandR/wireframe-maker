@@ -96,7 +96,7 @@ function Controls(){
 		];
 
 
-		renderer.renderLines(model, view, perspective);
+		renderer.render(model, view, perspective);
 	}
 
 	window.addEventListener("mousedown", function(e){

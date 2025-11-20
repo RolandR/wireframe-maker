@@ -25,6 +25,8 @@ function Renderer(canvasId){
 	let defaultColor = [0.5, 0.5, 0.5];
 	let colorData;
 	
+	let mode = "lines";
+	
 	init();
 
 	function init(){
@@ -195,6 +197,15 @@ function Renderer(canvasId){
 		size = triangles.length/3;
 		
 		let vertexData = new Float32Array(triangles);
+		colorData = new Float32Array(triangles.length);
+		
+		for(let i = 0; i < colorData.length; i += 3){
+			
+			colorData[i+0] = defaultColor[0];
+			colorData[i+1] = defaultColor[1];
+			colorData[i+2] = defaultColor[2];
+			
+		}
 		
 		gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, vertexData, gl.STATIC_DRAW);
@@ -212,38 +223,16 @@ function Renderer(canvasId){
 		gl.vertexAttribPointer(normal, 3, gl.FLOAT, false, 0, 0);
 		gl.enableVertexAttribArray(normal);
 		
+		gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, colorData, gl.STATIC_DRAW);
 		
+		var colorAttrib = gl.getAttribLocation(shaderProgram, "vertexColor");
+		gl.vertexAttribPointer(colorAttrib, 3, gl.FLOAT, false, 0, 0);
+		gl.enableVertexAttribArray(colorAttrib);
 
 	}
 	
-	function render(model, view, perspective){
-		
-		var normalsMatrix = normalMatrix(model);
-
-		gl.uniform1f(maxDistanceRef, 3.0);
-		
-		gl.uniformMatrix4fv(modelRef, false, model);
-		gl.uniformMatrix4fv(viewRef, false, view);
-		gl.uniformMatrix4fv(perspectiveRef, false, perspective);
-		gl.uniformMatrix4fv(normalTransformRef, false, normalsMatrix);
-		gl.uniform1f(aspectRef, canvas.width/canvas.height);
-
-		// Clear the canvas
-		gl.clearColor(0, 0, 0, 0);
-		
-		gl.viewport(0, 0, canvas.width, canvas.height);
-
-		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-		
-		//gl.enable(gl.BLEND);
-		//gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-		//gl.blendFunc(gl.SRC_COLOR, gl.DST_COLOR);
-
-		// Draw the triangle
-		gl.drawArrays(gl.TRIANGLES, 0, size);
-	}
-	
-	function renderLines(modelMatrix, view, perspective){
+	function render(modelMatrix, view, perspective){
 		
 		var normalsMatrix = normalMatrix(modelMatrix);
 
@@ -266,16 +255,23 @@ function Renderer(canvasId){
 		//gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 		//gl.blendFunc(gl.SRC_COLOR, gl.DST_COLOR);
 
-		// Draw the triangle
-		gl.drawArrays(gl.LINES, 0, size);
+		if(mode == "lines"){
+			gl.drawArrays(gl.LINES, 0, size);
+		} else if(mode == "triangles"){
+			gl.drawArrays(gl.TRIANGLES, 0, size);
+		}
+	}
+	
+	function setMode(newMode){
+		mode = newMode;
 	}
 
 	return{
 		addTriangles: addTriangles,
 		addEdges: addEdges,
 		render: render,
-		renderLines: renderLines,
 		highlightVertex: highlightVertex,
+		setMode: setMode,
 	};
 
 }
