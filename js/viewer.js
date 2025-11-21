@@ -89,18 +89,14 @@ async function loadFile(file){
 	vertexCountEl.innerHTML = model.points.length;
 	fileInfoContainer.style.display = "block";
 	
-	let sortedPoints = model.points.toSorted(function(a, b) {
-		return a.displayId - b.displayId;
-	});
-	
-	for(let p in sortedPoints){
+	for(let p in model.points){
 		
 		let pointInfoEl = document.createElement("div");
 		pointInfoEl.className = "pointInfo";
 		
 		pointInfoEl.innerHTML += "<h3>Corner "+p+"</h3>";
 		
-		pointInfoEl.innerHTML += "<p>Connected edges: "+sortedPoints[p].connections.length+"</p>";
+		pointInfoEl.innerHTML += "<p>Connected edges: "+model.points[p].connections.length+"</p>";
 		
 		pointInfoEl.addEventListener("click", function(e){
 			
@@ -112,13 +108,13 @@ async function loadFile(file){
 			pointInfoEl.className = "pointInfo pointInfoActive";
 			
 			renderer.setMode("triangles");
-			buildAndShowCorner(sortedPoints[p].listId);
+			buildAndShowCorner(p);
 			
 		});
 		
 		pointInfoEl.addEventListener("mouseenter", function(e){
 			
-			renderer.highlightVertex(sortedPoints[p].listId);
+			renderer.highlightVertex(p);
 			controls.update();
 			
 		});
@@ -182,7 +178,7 @@ function buildAndShowCorner(cornerId){
 	
 	let corner = buildCorner(model, cornerId, params, letterShapes);
 	
-	generateStl(corner, model.points[cornerId].displayId);
+	generateStl(corner, cornerId);
 	
 	renderer.addTriangles(corner.triangles, corner.normals);
 	
@@ -462,7 +458,7 @@ function process3dData(data){
 				points.push(point);
 			}
 			
-			trianglePoints.push(existingPointId);
+			trianglePoints.push(points[existingPointId]);
 		}
 		
 		// build deduplicated edges from references to points
@@ -490,7 +486,7 @@ function process3dData(data){
 				edges.push(edge);
 			}
 			
-			triangleEdges.push(existingEdgeId);
+			triangleEdges.push(edges[existingEdgeId]);
 			
 		}
 		
@@ -505,33 +501,24 @@ function process3dData(data){
 	
 	for(let e in edges){
 		let distance = Math.sqrt(
-			Math.pow(points[edges[e].a].x - points[edges[e].b].x, 2) +
-			Math.pow(points[edges[e].a].y - points[edges[e].b].y, 2) +
-			Math.pow(points[edges[e].a].z - points[edges[e].b].z, 2)
+			Math.pow(edges[e].a.x - edges[e].b.x, 2) +
+			Math.pow(edges[e].a.y - edges[e].b.y, 2) +
+			Math.pow(edges[e].a.z - edges[e].b.z, 2)
 		);
 		
 		edges[e].edgeLength = distance;
 		
 		totalEdgeLength += distance;
 		
-		points[edges[e].a].connections.push({
+		edges[e].a.connections.push({
 			point: edges[e].b,
-			edge: e,
+			edge: edges[e],
 		});
-		points[edges[e].b].connections.push({
+		edges[e].b.connections.push({
 			point: edges[e].a,
-			edge: e,
+			edge: edges[e],
 		});
 	}
-	
-	for(let p in points){
-		points[p].listId = p;
-	}
-	
-	/*edges = edges.sort(function(a, b) {
-		return a.edgeLength - b.edgeLength;
-	});*/
-	
 	
 	console.log(totalEdgeLength);
 	
@@ -540,20 +527,23 @@ function process3dData(data){
 	}));
 	
 	
-	let pointsSortedByPosition = points.toSorted(function(a, b) {
+	points.sort(function(a, b) {
+		// sort points by position along x axis
 		return a.x - b.x;
 	});
 	
-	for(let i in pointsSortedByPosition){
-		pointsSortedByPosition[i].displayId = i;
+	for(let p in points){
+		points[p].id = p;
 	}
 	
-	let edgesSortedByLength = edges.toSorted(function(a, b) {
+	edges.sort(function(a, b) {
+		// sort edges by length
+		// TODO: do this after calculting actual length of pipe
 		return a.edgeLength - b.edgeLength;
 	});
 	
-	for(let i in edgesSortedByLength){
-		edgesSortedByLength[i].displayId = i;
+	for(let e in edges){
+		edges[e].id = e;
 	}
 	
 	console.log(edges);

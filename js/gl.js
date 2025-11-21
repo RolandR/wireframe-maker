@@ -108,7 +108,7 @@ function Renderer(canvasId){
 		
 		for(let e in model.edges){
 			
-			if(model.edges[e].a == highlightedIndex){
+			if(model.edges[e].a.id == highlightedIndex){
 				
 				colorData[e*2*3+0] = defaultColor[0];
 				colorData[e*2*3+1] = defaultColor[1];
@@ -116,7 +116,7 @@ function Renderer(canvasId){
 				
 			}
 			
-			if(model.edges[e].a == index){
+			if(model.edges[e].a.id == index){
 				
 				colorData[e*2*3+0] = highlightColor[0];
 				colorData[e*2*3+1] = highlightColor[1];
@@ -124,7 +124,7 @@ function Renderer(canvasId){
 				
 			}
 			
-			if(model.edges[e].b == highlightedIndex){
+			if(model.edges[e].b.id == highlightedIndex){
 				
 				colorData[e*2*3+3] = defaultColor[0];
 				colorData[e*2*3+4] = defaultColor[1];
@@ -132,7 +132,7 @@ function Renderer(canvasId){
 				
 			}
 			
-			if(model.edges[e].b == index){
+			if(model.edges[e].b.id == index){
 				
 				colorData[e*2*3+3] = highlightColor[0];
 				colorData[e*2*3+4] = highlightColor[1];
@@ -159,13 +159,13 @@ function Renderer(canvasId){
 		colorData = new Float32Array(size*2*3);
 		
 		for(let e in model.edges){
-			vertexData[e*2*3+0] = model.points[model.edges[e].a].x;
-			vertexData[e*2*3+1] = model.points[model.edges[e].a].y;
-			vertexData[e*2*3+2] = model.points[model.edges[e].a].z;
+			vertexData[e*2*3+0] = model.edges[e].a.x;
+			vertexData[e*2*3+1] = model.edges[e].a.y;
+			vertexData[e*2*3+2] = model.edges[e].a.z;
 			
-			vertexData[e*2*3+3] = model.points[model.edges[e].b].x;
-			vertexData[e*2*3+4] = model.points[model.edges[e].b].y;
-			vertexData[e*2*3+5] = model.points[model.edges[e].b].z;
+			vertexData[e*2*3+3] = model.edges[e].b.x;
+			vertexData[e*2*3+4] = model.edges[e].b.y;
+			vertexData[e*2*3+5] = model.edges[e].b.z;
 			
 			colorData[e*2*3+0] = defaultColor[0];
 			colorData[e*2*3+1] = defaultColor[1];

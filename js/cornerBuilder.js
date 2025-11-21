@@ -7,20 +7,19 @@ function buildCorner(wireframe, index, params, letterShapes){
 		resolution: 32,
 	});
 	
-	let xPos = wireframe.points[index].x;
-	let yPos = wireframe.points[index].y;
-	let zPos = wireframe.points[index].z;
+	let point = wireframe.points[index];
 	
-	let displayId = wireframe.points[index].displayId;
+	let xPos = point.x;
+	let yPos = point.y;
+	let zPos = point.z;
 	
 	let hollowCylinders = [];
 	
-	for(let i in wireframe.points[index].connections){
+	for(let i in point.connections){
+
+		let edge = point.connections[i].edge;
+		let other = point.connections[i].point;
 		
-		let otherId = wireframe.points[index].connections[i].point;
-		let edgeId = wireframe.points[index].connections[i].edge;
-		let edgeDisplayId = wireframe.edges[wireframe.points[index].connections[i].edge].displayId;
-		let other = wireframe.points[otherId];
 		let toX = other.x - xPos;
 		let toY = other.y - yPos;
 		let toZ = other.z - zPos;
@@ -39,13 +38,13 @@ function buildCorner(wireframe, index, params, letterShapes){
 		
 		let maxDotProduct = 0;
 		// calculate angles to other edges
-		for(let o in wireframe.points[index].connections){
+		for(let o in point.connections){
 			
 			if(o === i){
 				continue;
 			}
 			
-			let otherOther = wireframe.points[wireframe.points[index].connections[o].point]; // variable names!
+			let otherOther = point.connections[o].point; // variable names!
 			
 			let toOtherX = otherOther.x - xPos;
 			let toOtherY = otherOther.y - yPos;
@@ -113,7 +112,7 @@ function buildCorner(wireframe, index, params, letterShapes){
 		
 		let textMargin = 0.001;
 		
-		let idText = setText(displayId + "");
+		let idText = setText(index + "");
 		idText.letters = idText.letters.scale([1, 1, 0.5]);
 		
 		if(idText.width+2*textMargin > params.stickout){
@@ -126,8 +125,9 @@ function buildCorner(wireframe, index, params, letterShapes){
 			.rotateY(90)
 			.translate([0, params.tubeID/2, calculatedLength+params.stickout+params.margin-textMargin]);
 			
-			
-		let edgeText = setText(edgeDisplayId + "");
+		
+		console.log(edge);
+		let edgeText = setText(edge.id + "");
 		edgeText.letters = edgeText.letters.scale([1, 1, 0.5]);
 		
 		if(edgeText.width+2*textMargin > params.stickout){
