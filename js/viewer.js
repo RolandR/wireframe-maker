@@ -107,17 +107,16 @@ async function loadFile(file){
 			
 			pointInfoEl.className = "pointInfo pointInfoActive";
 			
-			renderer.setMode("triangles");
 			buildAndShowCorner(p);
 			
 		});
 		
-		pointInfoEl.addEventListener("mouseenter", function(e){
+		/*pointInfoEl.addEventListener("mouseenter", function(e){
 			
 			renderer.highlightVertex(p);
 			controls.update();
 			
-		});
+		});*/
 		
 		verticesContainer.appendChild(pointInfoEl);
 		
@@ -127,7 +126,7 @@ async function loadFile(file){
 	
 	controls = new Controls();
 	
-	renderer.addEdges(model);
+	//renderer.addEdges(model);
 	
 	controls.update();
 	
@@ -180,7 +179,7 @@ function buildAndShowCorner(cornerId){
 	
 	generateStl(corner, cornerId);
 	
-	renderer.addTriangles(corner.triangles, corner.normals);
+	renderer.addObject(corner.triangles, corner.normals, [1.0, 0.7, 0.0]);
 	
 	controls.update();
 	

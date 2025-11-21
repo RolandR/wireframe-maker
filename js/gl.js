@@ -9,21 +9,16 @@ function Renderer(canvasId){
 	var gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
 
 	var shaderProgram;
-	var size;
-
-	var vertexBuffer;
-	var normalsBuffer;
-	var colorBuffer;
 
 	var transformMatrixRef;
 	var normalTransformRef;
 	var aspectRef;
 	
-	let model;
 	let highlightedIndex = null;
 	let highlightColor = [1.0, 0.7, 0.0];
 	let defaultColor = [0.5, 0.5, 0.5];
-	let colorData;
+	
+	let meshObjects = [];
 	
 	let mode = "lines";
 	
@@ -85,11 +80,6 @@ function Renderer(canvasId){
 		if(programInfo){
 			console.info(programInfo);
 		}
-
-
-		vertexBuffer = gl.createBuffer();
-		normalsBuffer = gl.createBuffer();
-		colorBuffer = gl.createBuffer();
 		
 		maxDistanceRef = gl.getUniformLocation(shaderProgram, "maxDistance");
 		modelRef = gl.getUniformLocation(shaderProgram, "model");
@@ -100,7 +90,7 @@ function Renderer(canvasId){
 		
 	}
 	
-	function highlightVertex(index){
+	/*function highlightVertex(index){
 		
 		if(highlightedIndex === index){
 			return;
@@ -147,9 +137,9 @@ function Renderer(canvasId){
 		
 		highlightedIndex = index;
 		
-	}
+	}*/
 
-	function addEdges(mdl){
+	/*function addEdges(mdl){
 		
 		model = mdl;
 		
@@ -190,45 +180,62 @@ function Renderer(canvasId){
 		gl.vertexAttribPointer(colorAttrib, 3, gl.FLOAT, false, 0, 0);
 		gl.enableVertexAttribArray(colorAttrib);
 
-	}
+	}*/
 	
-	function addTriangles(triangles, normals){
-		
-		size = triangles.length/3;
+	function addObject(triangles, normals, color){
 		
 		let vertexData = new Float32Array(triangles);
-		colorData = new Float32Array(triangles.length);
+		let normalsData = new Float32Array(normals);
+		let colorData = new Float32Array(triangles.length);
+		
+		if(!color){
+			color = defaultColor;
+		}
 		
 		for(let i = 0; i < colorData.length; i += 3){
 			
-			colorData[i+0] = defaultColor[0];
-			colorData[i+1] = defaultColor[1];
-			colorData[i+2] = defaultColor[2];
+			colorData[i+0] = color[0];
+			colorData[i+1] = color[1];
+			colorData[i+2] = color[2];
 			
 		}
 		
-		gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-		gl.bufferData(gl.ARRAY_BUFFER, vertexData, gl.STATIC_DRAW);
 		
-		var coord = gl.getAttribLocation(shaderProgram, "coordinates");
+		let meshObject = {
+			size: triangles.length/3,
+			vertexData: vertexData,
+			normalsData: normalsData,
+			colorData: colorData,
+			vertexBuffer: gl.createBuffer(),
+			normalsBuffer: gl.createBuffer(),
+			colorBuffer: gl.createBuffer(),
+		};
+		
+		
+		gl.bindBuffer(gl.ARRAY_BUFFER, meshObject.vertexBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, meshObject.vertexData, gl.STATIC_DRAW);
+		
+		let coord = gl.getAttribLocation(shaderProgram, "coordinates");
 		gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 0, 0);
 		gl.enableVertexAttribArray(coord);
 		
-		let normalsData = new Float32Array(normals);
+		gl.bindBuffer(gl.ARRAY_BUFFER, meshObject.normalsBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, meshObject.normalsData, gl.STATIC_DRAW);
 		
-		gl.bindBuffer(gl.ARRAY_BUFFER, normalsBuffer);
-		gl.bufferData(gl.ARRAY_BUFFER, normalsData, gl.STATIC_DRAW);
-		
-		var normal = gl.getAttribLocation(shaderProgram, "vertexNormal");
+		let normal = gl.getAttribLocation(shaderProgram, "vertexNormal");
 		gl.vertexAttribPointer(normal, 3, gl.FLOAT, false, 0, 0);
 		gl.enableVertexAttribArray(normal);
 		
-		gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-		gl.bufferData(gl.ARRAY_BUFFER, colorData, gl.STATIC_DRAW);
+		gl.bindBuffer(gl.ARRAY_BUFFER, meshObject.colorBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, meshObject.colorData, gl.STATIC_DRAW);
 		
-		var colorAttrib = gl.getAttribLocation(shaderProgram, "vertexColor");
+		let colorAttrib = gl.getAttribLocation(shaderProgram, "vertexColor");
 		gl.vertexAttribPointer(colorAttrib, 3, gl.FLOAT, false, 0, 0);
 		gl.enableVertexAttribArray(colorAttrib);
+		
+		meshObjects.push(meshObject);
+		
+		return meshObject;
 
 	}
 	
@@ -254,24 +261,35 @@ function Renderer(canvasId){
 		//gl.enable(gl.BLEND);
 		//gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 		//gl.blendFunc(gl.SRC_COLOR, gl.DST_COLOR);
-
-		if(mode == "lines"){
-			gl.drawArrays(gl.LINES, 0, size);
-		} else if(mode == "triangles"){
-			gl.drawArrays(gl.TRIANGLES, 0, size);
+		
+		for(let i in meshObjects){
+			
+			let obj = meshObjects[i];
+			
+			gl.bindBuffer(gl.ARRAY_BUFFER, obj.vertexBuffer);
+			let coords = gl.getAttribLocation(shaderProgram, "coordinates");
+			gl.vertexAttribPointer(coords, 3, gl.FLOAT, false, 0, 0);
+			gl.enableVertexAttribArray(coords);
+			
+			gl.bindBuffer(gl.ARRAY_BUFFER, obj.normalsBuffer);
+			let normal = gl.getAttribLocation(shaderProgram, "vertexNormal");
+			gl.vertexAttribPointer(normal, 3, gl.FLOAT, false, 0, 0);
+			gl.enableVertexAttribArray(normal);
+			
+			gl.bindBuffer(gl.ARRAY_BUFFER, obj.colorBuffer);
+			let colorAttrib = gl.getAttribLocation(shaderProgram, "vertexColor");
+			gl.vertexAttribPointer(colorAttrib, 3, gl.FLOAT, false, 0, 0);
+			gl.enableVertexAttribArray(colorAttrib);
+			
+			gl.drawArrays(gl.TRIANGLES, 0, obj.size);
+			
 		}
-	}
-	
-	function setMode(newMode){
-		mode = newMode;
+		
 	}
 
 	return{
-		addTriangles: addTriangles,
-		addEdges: addEdges,
+		addObject: addObject,
 		render: render,
-		highlightVertex: highlightVertex,
-		setMode: setMode,
 	};
 
 }
