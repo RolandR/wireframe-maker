@@ -5,6 +5,7 @@ const params = {
 	stickout: 0.015,
 	margin: 0.001,
 	hollowDiameter: 0.012,
+	connectorToPipeMargin: 0.001,
 }
 
 let model = {};
@@ -37,7 +38,7 @@ async function loadAlphabet(){
 
 
 const pMon = new ProgressMonitor(document.body, {
-	itemsCount: 2,
+	itemsCount: 5,
 	title: "Loading file..."
 });
 
@@ -89,7 +90,37 @@ async function loadFile(file){
 	vertexCountEl.innerHTML = model.points.length;
 	fileInfoContainer.style.display = "block";
 	
+	await pMon.updateProgress(1);
+	await pMon.finishItem();
+	await pMon.postMessage("Calculating edges...", "info", model.points.length);
+	
 	for(let p in model.points){
+		p = parseInt(p);
+		
+		calculateCorner(model, p, params);
+		
+		await pMon.updateCount(p+1);
+	}
+	
+	await pMon.updateProgress(1);
+	await pMon.finishItem();
+	await pMon.postMessage("Building preview corners...", "info", model.points.length);
+	
+	for(let p in model.points){
+		p = parseInt(p);
+		
+		let cornerPreview = buildCornerPreview(model, p, params);
+		
+		renderer.addObject(cornerPreview.triangles, cornerPreview.normals, [0.8, 0.5, 0.0]);
+		
+		await pMon.updateCount(p+1);
+	}
+	
+	
+	
+	
+	for(let p in model.points){
+		p = parseInt(p);
 		
 		let pointInfoEl = document.createElement("div");
 		pointInfoEl.className = "pointInfo";
@@ -123,6 +154,26 @@ async function loadFile(file){
 	}
 	
 	verticesContainer.style.display = "block";
+	
+	await pMon.updateProgress(1);
+	await pMon.finishItem();
+	await pMon.postMessage("Building preview edges...", "info", model.edges.length);
+	
+	for(let e in model.edges){
+		e = parseInt(e);
+		
+		calculateEdge(model, e, params);
+	}
+	
+	for(let e in model.edges){
+		e = parseInt(e);
+		
+		let edgePreview = buildEdgePreview(model, e, params);
+		
+		renderer.addObject(edgePreview.triangles, edgePreview.normals, [0.5, 0.5, 0.5]);
+		
+		await pMon.updateCount(e+1);
+	}
 	
 	controls = new Controls();
 	
@@ -509,14 +560,17 @@ function process3dData(data){
 		
 		totalEdgeLength += distance;
 		
-		edges[e].a.connections.push({
+		edges[e].connectionA = {
 			point: edges[e].b,
 			edge: edges[e],
-		});
-		edges[e].b.connections.push({
+		};
+		edges[e].a.connections.push(edges[e].connectionA);
+		
+		edges[e].connectionB = {
 			point: edges[e].a,
 			edge: edges[e],
-		});
+		};
+		edges[e].b.connections.push(edges[e].connectionB);
 	}
 	
 	console.log(totalEdgeLength);
