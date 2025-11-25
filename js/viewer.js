@@ -18,6 +18,7 @@ const fileInfoContainer = document.getElementById("fileInfoContainer");
 const triangleCountEl = document.getElementById("triangleCount");
 const edgeCountEl = document.getElementById("edgeCount");
 const vertexCountEl = document.getElementById("vertexCount");
+const pipeLengthEl = document.getElementById("pipeLength");
 
 const verticesContainer = document.getElementById("verticesContainer");
 
@@ -159,11 +160,28 @@ async function loadFile(file){
 	await pMon.finishItem();
 	await pMon.postMessage("Building preview edges...", "info", model.edges.length);
 	
+	let totalPipeLength = 0;
+	
 	for(let e in model.edges){
 		e = parseInt(e);
 		
 		calculateEdge(model, e, params);
+		
+		totalPipeLength += model.edges[e].pipeLength;
 	}
+	
+	pipeLengthEl.innerHTML = totalPipeLength.toFixed(2) + " m";
+	
+	
+	model.edges.sort(function(a, b) {
+		// sort edges by length
+		return a.pipeLength - b.pipeLength;
+	});
+	
+	for(let e in model.edges){
+		model.edges[e].id = e;
+	}
+	
 	
 	for(let e in model.edges){
 		e = parseInt(e);
@@ -195,7 +213,6 @@ async function loadShape(url){
 
 		const result = await response.arrayBuffer();
 		let shape = detectBinary(result);
-		console.log(shape);
 		
 		
 		let triangles = [];
@@ -213,8 +230,6 @@ async function loadShape(url){
 		}
 		
 		let csgShape = CSG.fromPolygons(triangles);
-		
-		console.log(csgShape);
 		
 		return csgShape;
 		
@@ -251,11 +266,11 @@ function detectBinary(stl){
 	}
 	
 	if(binary){
-		console.info("Detected binary STL file");
+		//console.info("Detected binary STL file");
 		return parseBinaryStl(stlView);
 	} else {
 		
-		console.info("Detected ASCII STL file");
+		//console.info("Detected ASCII STL file");
 		
 		var stlString = "";
 		
@@ -469,7 +484,7 @@ function process3dData(data){
 	
 	var span = max - min;
 	
-	console.log("stl has "+vertices.length/3+" vertices");
+	//console.log("stl has "+vertices.length/3+" vertices");
 	
 	let points = [];
 	let edges = [];
@@ -543,9 +558,9 @@ function process3dData(data){
 		triangles.push(triangleEdges);
 	}
 	
-	console.log("stl has "+points.length+" points");
-	console.log("stl has "+edges.length+" edges");
-	console.log("stl has "+triangles.length+" triangles");
+	//console.log("stl has "+points.length+" points");
+	//console.log("stl has "+edges.length+" edges");
+	//console.log("stl has "+triangles.length+" triangles");
 	
 	let totalEdgeLength = 0;
 	
@@ -573,7 +588,7 @@ function process3dData(data){
 		edges[e].b.connections.push(edges[e].connectionB);
 	}
 	
-	console.log(totalEdgeLength);
+	//console.log(totalEdgeLength);
 	
 	console.log(points.toSorted(function(a, b) {
 		return a.connections.length - b.connections.length;
@@ -589,18 +604,8 @@ function process3dData(data){
 		points[p].id = p;
 	}
 	
-	edges.sort(function(a, b) {
-		// sort edges by length
-		// TODO: do this after calculting actual length of pipe
-		return a.edgeLength - b.edgeLength;
-	});
-	
-	for(let e in edges){
-		edges[e].id = e;
-	}
-	
 	console.log(edges);
-	console.log(points);
+	//console.log(points);
 	
 	
 	let model = {

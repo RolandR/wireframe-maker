@@ -154,8 +154,6 @@ function buildCornerPreview(wireframe, index, params){
 		let edge = connection.edge;
 		let other = connection.point;
 		
-		console.log(connection);
-		
 		let cylinder = CSG.cylinder({
 			start: [0, 0, 0],
 			end: [
