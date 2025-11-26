@@ -10,6 +10,11 @@ const params = {
 
 let model = {};
 
+let cornerDefaultColor = [0.7, 0.4, 0.1];
+let cornerHighlightColor = [1.0, 0.7, 0.0];
+let edgeDefaultColor = [0.5, 0.5, 0.5];
+let edgeHighlightColor = [0.8, 0.77, 0.7];
+
 const renderer = new Renderer("renderCanvas");
 var controls;
 
@@ -112,7 +117,7 @@ async function loadFile(file){
 		
 		let cornerPreview = buildCornerPreview(model, p, params);
 		
-		renderer.addObject(cornerPreview.triangles, cornerPreview.normals, [0.8, 0.5, 0.0]);
+		model.points[p].previewRender = renderer.addObject(cornerPreview.triangles, cornerPreview.normals, cornerDefaultColor);
 		
 		await pMon.updateCount(p+1);
 	}
@@ -143,12 +148,25 @@ async function loadFile(file){
 			
 		});
 		
-		/*pointInfoEl.addEventListener("mouseenter", function(e){
+		pointInfoEl.addEventListener("mouseenter", function(e){
 			
-			renderer.highlightVertex(p);
+			for(let i in model.points){
+				model.points[i].previewRender.color = cornerDefaultColor;
+			}
+			
+			for(let i in model.edges){
+				model.edges[i].previewRender.color = edgeDefaultColor;
+			}
+			
+			model.points[p].previewRender.color = cornerHighlightColor;
+			
+			for(let i in model.points[p].connections){
+				model.points[p].connections[i].edge.previewRender.color = edgeHighlightColor;
+			}
+			
 			controls.update();
 			
-		});*/
+		});
 		
 		verticesContainer.appendChild(pointInfoEl);
 		
@@ -188,7 +206,7 @@ async function loadFile(file){
 		
 		let edgePreview = buildEdgePreview(model, e, params);
 		
-		renderer.addObject(edgePreview.triangles, edgePreview.normals, [0.5, 0.5, 0.5]);
+		model.edges[e].previewRender = renderer.addObject(edgePreview.triangles, edgePreview.normals, edgeDefaultColor);
 		
 		await pMon.updateCount(e+1);
 	}

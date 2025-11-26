@@ -13,16 +13,14 @@ uniform float maxDistance;
 
 attribute vec3 coordinates;
 attribute vec3 vertexNormal;
-attribute vec3 vertexColor;
 
 varying highp vec3 lighting;
-varying vec3 varColor;
 varying float fogness;
 
 void main(void){
 
-	highp vec3 ambientLight = vec3(0.3, 0.3, 0.5);
-    highp vec3 directionalLightColor = vec3(1.0, 1.0, 0.9);
+	highp vec3 ambientLight = vec3(0.3, 0.3, 0.37);
+    highp vec3 directionalLightColor = vec3(1.0, 0.95, 0.85);
     highp vec3 directionalVector = normalize(vec3(-1.0, 1.0, 1.0));
     directionalVector = normalize((vec4(directionalVector, 1.0)*model).xyz);
     highp vec3 viewVector = normalize(vec3(0.0, 1.0, 0.0));
@@ -45,8 +43,6 @@ void main(void){
 	//fogness = clamp(length(coords)/maxDistance, 0.0, 1.0);
 	
 	//lighting = ambientLight*(1.0-fogness);
-	
-	varColor = vertexColor;
 	
 	gl_Position = coords;
 }
