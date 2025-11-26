@@ -129,6 +129,86 @@ function buildEdgePreview(wireframe, index, params){
 	
 }
 
+function buildPinsPreview(wireframe, index, params){
+	
+	let point = wireframe.points[index];
+	
+	let xPos = point.x;
+	let yPos = point.y;
+	let zPos = point.z;
+	
+	let pins = [];
+	
+	for(let i in point.connections){
+		
+		let connection = point.connections[i];
+		let edge = connection.edge;
+		let other = connection.point;
+		
+		let edgeDirection = normaliseVec3({
+			x: other.x - xPos,
+			y: other.y - yPos,
+			z: other.z - zPos,
+		});
+		
+		let unitToX = edge.normal.x;
+		let unitToY = edge.normal.y;
+		let unitToZ = edge.normal.z;
+		
+		let distanceFromZAxis = Math.sqrt(Math.pow(unitToX, 2) + Math.pow(unitToY, 2));
+		let yAngle = Math.asin(distanceFromZAxis)*180/Math.PI;
+		if(unitToZ < 0){
+			yAngle = 180-yAngle;
+		}
+		
+		let zAngle = Math.asin(unitToY/distanceFromZAxis)*180/Math.PI;
+		if(unitToX < 0){
+			zAngle = 180-zAngle;
+		}
+		
+		
+		let cylinder = CSG.cylinder({
+			start: [0, 0, -params.tubeOD*0.6],
+			end: [
+				0,
+				0,
+				params.tubeOD*0.7,
+			],
+			radius: 0.0015,
+			resolution: previewResolution,
+		});
+		
+		let pinPosition = connection.stickout + params.stickout/2;
+		
+		cylinder = cylinder.rotateY(yAngle);
+		cylinder = cylinder.rotateZ(zAngle);
+		cylinder = cylinder.translate([
+			xPos+pinPosition*edgeDirection.x,
+			yPos+pinPosition*edgeDirection.y, 
+			zPos+pinPosition*edgeDirection.z,
+		]);
+		
+		pins.push(cylinder);
+	}
+	
+	let triangles = [];
+	let normals = [];
+	
+	for(let i in pins){
+		
+		let polygons = triangulate(pins[i].toPolygons());
+		triangles = triangles.concat(polygons.triangles);
+		normals = normals.concat(polygons.normals);
+		
+	}
+	
+	return {
+		triangles: triangles,
+		normals: normals,
+	};
+	
+}
+
 
 function buildCornerPreview(wireframe, index, params){
 	

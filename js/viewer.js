@@ -18,6 +18,7 @@ let cornerDefaultColor = [0.7, 0.4, 0.1];
 let cornerHighlightColor = [1.0, 0.7, 0.0];
 let edgeDefaultColor = [0.5, 0.5, 0.5];
 let edgeHighlightColor = [0.8, 0.77, 0.7];
+let pinDefaultColor = [0.3, 0.3, 0.7];
 
 const renderer = new Renderer("renderCanvas");
 var controls;
@@ -122,6 +123,10 @@ async function loadFile(file){
 		let cornerPreview = buildCornerPreview(model, p, params);
 		
 		model.points[p].previewRender = renderer.addObject(cornerPreview.triangles, cornerPreview.normals, cornerDefaultColor);
+		
+		let pinsPreview = buildPinsPreview(model, p, params);
+		
+		model.points[p].previewPinsRender = renderer.addObject(pinsPreview.triangles, pinsPreview.normals, pinDefaultColor);
 		
 		await pMon.updateCount(p+1);
 	}
@@ -568,6 +573,7 @@ function process3dData(data){
 			let edge = {
 				a: trianglePoints[e],
 				b: trianglePoints[(e+1)%3],
+				triangles: [],
 			};
 			let existingEdgeId = -1;
 			
@@ -591,7 +597,18 @@ function process3dData(data){
 			
 		}
 		
-		triangles.push(triangleEdges);
+		let triangle = {
+			points: trianglePoints,
+			edges: triangleEdges,
+		}
+		
+		for(let e in triangle.edges){
+			triangle.edges[e].triangles.push(triangle);
+		}
+		
+		triangle.normal = calculateNormalFromTriangle(triangle);
+		
+		triangles.push(triangle);
 	}
 	
 	//console.log("stl has "+points.length+" points");
@@ -622,6 +639,20 @@ function process3dData(data){
 			edge: edges[e],
 		};
 		edges[e].b.connections.push(edges[e].connectionB);
+		
+		if(edges[e].triangles.length != 2){
+			console.warn("Edge "+e+" has unusual amount of bordering triangles ("+edges[e].triangles.length+" instead of 2)");
+		}
+		
+		edges[e].normal = {x: 0, y: 0, z: 0};
+		for(let t in edges[e].triangles){
+			edges[e].normal.x += edges[e].triangles[t].normal.x;
+			edges[e].normal.y += edges[e].triangles[t].normal.y;
+			edges[e].normal.z += edges[e].triangles[t].normal.z;
+		}
+		
+		edges[e].normal = normaliseVec3(edges[e].normal);
+		
 	}
 	
 	//console.log(totalEdgeLength);
@@ -659,4 +690,47 @@ function process3dData(data){
 	}
 	
 	return model;
+}
+
+function calculateNormalFromTriangle(triangle){
+	let normal = {
+		x: 0,
+		y: 0,
+		z: 0,
+	};
+	
+	let a = {
+		x: triangle.points[1].x - triangle.points[0].x,
+		y: triangle.points[1].y - triangle.points[0].y,
+		z: triangle.points[1].z - triangle.points[0].z,
+	};
+	
+	let b = {
+		x: triangle.points[2].x - triangle.points[0].x,
+		y: triangle.points[2].y - triangle.points[0].y,
+		z: triangle.points[2].z - triangle.points[0].z,
+	};
+	
+	normal.x = a.y*b.z - a.z*b.y;
+	normal.y = a.z*b.x - a.x*b.z;
+	normal.z = a.x*b.y - a.y*b.x;
+	
+	return normaliseVec3(normal);
+}
+
+function normaliseVec3(vector){
+	
+	let newVector = {x: 0, y: 0, z: 0};
+	
+	let vecLength = Math.sqrt(
+		Math.pow(vector.x, 2) +
+		Math.pow(vector.y, 2) +
+		Math.pow(vector.z, 2)
+	);
+	
+	newVector.x = vector.x/vecLength;
+	newVector.y = vector.y/vecLength;
+	newVector.z = vector.z/vecLength;
+	
+	return newVector;
 }
