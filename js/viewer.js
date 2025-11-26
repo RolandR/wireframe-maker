@@ -259,11 +259,25 @@ async function loadShape(url){
 
 function buildAndShowCorner(cornerId){
 	
+	for(let i in model.points){
+		model.points[i].previewRender.visible = false;
+		if(model.points[i].geometryRender){
+			model.points[i].geometryRender.visible = false;
+		}
+	}
+	
+	for(let i in model.edges){
+		model.edges[i].previewRender.visible = false;
+	}
+	
+	controls.update();
+	
 	let corner = buildCorner(model, cornerId, params, letterShapes);
 	
 	generateStl(corner, cornerId);
 	
-	renderer.addObject(corner.triangles, corner.normals, [1.0, 0.7, 0.0]);
+	model.points[cornerId].builtGeometry = corner;
+	model.points[cornerId].geometryRender = renderer.addObject(corner.triangles, corner.normals, [1.0, 0.7, 0.0]);
 	
 	controls.update();
 	

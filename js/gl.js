@@ -90,98 +90,6 @@ function Renderer(canvasId){
 		
 	}
 	
-	/*function highlightVertex(index){
-		
-		if(highlightedIndex === index){
-			return;
-		}
-		
-		for(let e in model.edges){
-			
-			if(model.edges[e].a.id == highlightedIndex){
-				
-				colorData[e*2*3+0] = defaultColor[0];
-				colorData[e*2*3+1] = defaultColor[1];
-				colorData[e*2*3+2] = defaultColor[2];
-				
-			}
-			
-			if(model.edges[e].a.id == index){
-				
-				colorData[e*2*3+0] = highlightColor[0];
-				colorData[e*2*3+1] = highlightColor[1];
-				colorData[e*2*3+2] = highlightColor[2];
-				
-			}
-			
-			if(model.edges[e].b.id == highlightedIndex){
-				
-				colorData[e*2*3+3] = defaultColor[0];
-				colorData[e*2*3+4] = defaultColor[1];
-				colorData[e*2*3+5] = defaultColor[2];
-				
-			}
-			
-			if(model.edges[e].b.id == index){
-				
-				colorData[e*2*3+3] = highlightColor[0];
-				colorData[e*2*3+4] = highlightColor[1];
-				colorData[e*2*3+5] = highlightColor[2];
-				
-			}
-			
-		}
-		
-		gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-		gl.bufferData(gl.ARRAY_BUFFER, colorData, gl.STATIC_DRAW);
-		
-		highlightedIndex = index;
-		
-	}*/
-
-	/*function addEdges(mdl){
-		
-		model = mdl;
-		
-		size = model.edges.length*2;
-		
-		let vertexData = new Float32Array(size*2*3);
-		colorData = new Float32Array(size*2*3);
-		
-		for(let e in model.edges){
-			vertexData[e*2*3+0] = model.edges[e].a.x;
-			vertexData[e*2*3+1] = model.edges[e].a.y;
-			vertexData[e*2*3+2] = model.edges[e].a.z;
-			
-			vertexData[e*2*3+3] = model.edges[e].b.x;
-			vertexData[e*2*3+4] = model.edges[e].b.y;
-			vertexData[e*2*3+5] = model.edges[e].b.z;
-			
-			colorData[e*2*3+0] = defaultColor[0];
-			colorData[e*2*3+1] = defaultColor[1];
-			colorData[e*2*3+2] = defaultColor[2];
-			
-			colorData[e*2*3+3] = defaultColor[0];
-			colorData[e*2*3+4] = defaultColor[1];
-			colorData[e*2*3+5] = defaultColor[2];
-		}
-		
-		gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-		gl.bufferData(gl.ARRAY_BUFFER, vertexData, gl.STATIC_DRAW);
-		
-		var coord = gl.getAttribLocation(shaderProgram, "coordinates");
-		gl.vertexAttribPointer(coord, 3, gl.FLOAT, false, 0, 0);
-		gl.enableVertexAttribArray(coord);
-		
-		gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-		gl.bufferData(gl.ARRAY_BUFFER, colorData, gl.STATIC_DRAW);
-		
-		var colorAttrib = gl.getAttribLocation(shaderProgram, "vertexColor");
-		gl.vertexAttribPointer(colorAttrib, 3, gl.FLOAT, false, 0, 0);
-		gl.enableVertexAttribArray(colorAttrib);
-
-	}*/
-	
 	function addObject(triangles, normals, color){
 		
 		let vertexData = new Float32Array(triangles);
@@ -195,6 +103,7 @@ function Renderer(canvasId){
 		let meshObject = {
 			size: triangles.length/3,
 			color: color,
+			visible: true,
 			vertexData: vertexData,
 			normalsData: normalsData,
 			vertexBuffer: gl.createBuffer(),
@@ -248,6 +157,10 @@ function Renderer(canvasId){
 		for(let i in meshObjects){
 			
 			let obj = meshObjects[i];
+			
+			if(!obj.visible){
+				continue;
+			}
 			
 			gl.bindBuffer(gl.ARRAY_BUFFER, obj.vertexBuffer);
 			let coords = gl.getAttribLocation(shaderProgram, "coordinates");
