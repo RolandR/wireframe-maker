@@ -208,6 +208,19 @@ function buildCorner(wireframe, index, params, letterShapes){
 	
 	let hollowCylinders = [];
 	
+	// textDifferenceCylinder is for making the text
+	// conform to the curve of the tube wall
+	/*let textDifferenceCylinder = CSG.cylinder({
+		start: [0, 0, 0-params.stickout],
+		end: [
+			0,
+			0,
+			0,
+		],
+		radius: params.tubeID/2 - params.textDepth,
+		resolution: params.outsideResolution,
+	});*/
+	
 	for(let i in point.connections){
 		
 		i = parseInt(i);
@@ -238,44 +251,59 @@ function buildCorner(wireframe, index, params, letterShapes){
 			resolution: params.outsideResolution,
 		});
 		
-		let textMargin = 0.001;
-		
 		let idText = setText(index + "");
-		idText.letters = idText.letters.scale([1, 1, 0.5]);
+		idText.letters = idText.letters.scale([1, 1, 5]);
 		
-		if(idText.width+2*textMargin > params.stickout){
-			let factor = (params.stickout)/(idText.width+2*textMargin);
+		if(idText.width+2*params.textMargin > params.stickout){
+			let factor = (params.stickout)/(idText.width+2*params.textMargin);
 			idText.letters = idText.letters.scale([factor, factor, 1]);
+		}
+			
+		let edgeText = setText(edge.id + "");
+		edgeText.letters = edgeText.letters.scale([1, 1, 5]);
+		
+		if(edgeText.width+2*params.textMargin > params.stickout){
+			let factor = (params.stickout)/(edgeText.width+2*params.textMargin);
+			edgeText.letters = edgeText.letters.scale([factor, factor, 1]);
 		}
 		
 		idText = idText.letters
 			.rotateX(90)
 			.rotateY(90)
-			.translate([0, params.tubeID/2, connection.stickout+params.stickout-textMargin]);
+			.translate([0, params.tubeID/2, 0]);
 			
-		
-		console.log(edge);
-		let edgeText = setText(edge.id + "");
-		edgeText.letters = edgeText.letters.scale([1, 1, 0.5]);
-		
-		if(edgeText.width+2*textMargin > params.stickout){
-			let factor = (params.stickout)/(edgeText.width+2*textMargin);
-			edgeText.letters = edgeText.letters.scale([factor, factor, 1]);
-		}
-		
 		edgeText = edgeText.letters
 			.rotateX(90)
 			.rotateY(90)
-			.translate([0, params.tubeID/2, connection.stickout+params.stickout-textMargin]);
+			.translate([0, params.tubeID/2, 0]);
+			
+		//idText = idText.subtract(textDifferenceCylinder);
+		//edgeText = edgeText.subtract(textDifferenceCylinder);
+		
+		idText = idText.translate([0, 0, connection.stickout+params.stickout-params.textMargin]);
+		edgeText = edgeText.translate([0, 0, connection.stickout+params.stickout-params.textMargin]);
 			
 			
 		smallerCylinder = smallerCylinder.subtract(idText);
 		smallerCylinder = smallerCylinder.subtract(idText.rotateZ(120));
 		smallerCylinder = smallerCylinder.subtract(idText.rotateZ(240));
 		
-		smallerCylinder = smallerCylinder.subtract(edgeText.rotateZ(30));
-		smallerCylinder = smallerCylinder.subtract(edgeText.rotateZ(120+30));
-		smallerCylinder = smallerCylinder.subtract(edgeText.rotateZ(240+30));
+		smallerCylinder = smallerCylinder.subtract(edgeText.rotateZ(50));
+		smallerCylinder = smallerCylinder.subtract(edgeText.rotateZ(120+50));
+		smallerCylinder = smallerCylinder.subtract(edgeText.rotateZ(240+50));
+		
+		let textDepthCylinder = CSG.cylinder({
+			start: [0, 0, connection.stickout],
+			end: [
+				0,
+				0,
+				connection.stickout + params.stickout,
+			],
+			radius: params.tubeID/2-params.textDepth,
+			resolution: params.outsideResolution,
+		});
+		
+		smallerCylinder = smallerCylinder.union(textDepthCylinder);
 		
 		cylinder = cylinder.union(smallerCylinder);
 		cylinder = cylinder.rotateY(connection.yAngle);
@@ -318,8 +346,8 @@ function buildCorner(wireframe, index, params, letterShapes){
 
 function setText(text){
 	
-	const letterWidth = 0.003;
-	const letterHeight = 0.004;
+	const letterHeight = 0.006;
+	const letterWidth = 0.004;
 	
 	let letters = [];
 	for(let i in text){

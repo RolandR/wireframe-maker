@@ -8,6 +8,8 @@ const params = {
 	connectorToPipeMargin: 0.001,
 	outsideResolution: 32,
 	insideResolution: 8,
+	textMargin: 0.001,
+	textDepth: 0.0005,
 }
 
 let model = {};
