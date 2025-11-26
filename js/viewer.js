@@ -6,6 +6,8 @@ const params = {
 	margin: 0.001,
 	hollowDiameter: 0.012,
 	connectorToPipeMargin: 0.001,
+	outsideResolution: 32,
+	insideResolution: 8,
 }
 
 let model = {};

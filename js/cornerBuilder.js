@@ -197,7 +197,7 @@ function buildCorner(wireframe, index, params, letterShapes){
 	let corner = CSG.sphere({
 		center: [0, 0, 0],
 		radius: (params.tubeOD/2)*1.01,
-		resolution: 32,
+		resolution: params.outsideResolution,
 	});
 	
 	let point = wireframe.points[index];
@@ -209,98 +209,33 @@ function buildCorner(wireframe, index, params, letterShapes){
 	let hollowCylinders = [];
 	
 	for(let i in point.connections){
-
-		let edge = point.connections[i].edge;
-		let other = point.connections[i].point;
-		
-		let toX = other.x - xPos;
-		let toY = other.y - yPos;
-		let toZ = other.z - zPos;
-		
-		let distance = Math.sqrt(
-			Math.pow(toX, 2) +
-			Math.pow(toY, 2) +
-			Math.pow(toZ, 2)
-		);
-		
-		let stickout = 0.03;
-		
-		unitToX = toX/distance;
-		unitToY = toY/distance;
-		unitToZ = toZ/distance;
-		
-		let maxDotProduct = 0;
-		// calculate angles to other edges
-		for(let o in point.connections){
-			
-			if(o === i){
-				continue;
-			}
-			
-			let otherOther = point.connections[o].point; // variable names!
-			
-			let toOtherX = otherOther.x - xPos;
-			let toOtherY = otherOther.y - yPos;
-			let toOtherZ = otherOther.z - zPos;
-			
-			let otherOtherDistance = Math.sqrt(
-				Math.pow(toOtherX, 2) +
-				Math.pow(toOtherY, 2) +
-				Math.pow(toOtherZ, 2)
-			);
-			
-			unitOtherX = toOtherX/otherOtherDistance;
-			unitOtherY = toOtherY/otherOtherDistance;
-			unitOtherZ = toOtherZ/otherOtherDistance;
-			
-			let dotProduct = unitToX*unitOtherX + unitToY*unitOtherY + unitToZ*unitOtherZ;
-			
-			maxDotProduct = Math.max(dotProduct, maxDotProduct);
-			
-		}
 		
 		i = parseInt(i);
 		
-		let smallestAngle = Math.acos(maxDotProduct);
-		
-		let calculatedLength = params.tubeOD/2 * (1/Math.tan(smallestAngle/2));
+		let connection = point.connections[i];
+		let edge = connection.edge;
+		let other = connection.point;
 		
 		let cylinder = CSG.cylinder({
 			start: [0, 0, 0],
 			end: [
 				0,
 				0,
-				calculatedLength+params.margin,
+				connection.stickout,
 			],
 			radius: params.tubeOD/2,
-			resolution: 32
+			resolution: params.outsideResolution,
 		});
 		
-		let distanceFromZAxis = Math.sqrt(Math.pow(unitToX, 2) + Math.pow(unitToY, 2));
-		let yAngle = Math.asin(distanceFromZAxis)*180/Math.PI;
-		if(unitToZ < 0){
-			yAngle = 180-yAngle;
-		}
-		cylinder = cylinder.rotateY(yAngle);
-		
-		
-		let zAngle = Math.asin(unitToY/distanceFromZAxis)*180/Math.PI;
-		if(unitToX < 0){
-			zAngle = 180-zAngle;
-		}
-		cylinder = cylinder.rotateZ(zAngle);
-		
-		corner = corner.union(cylinder);
-		
 		let smallerCylinder = CSG.cylinder({
-			start: [0, 0, calculatedLength],
+			start: [0, 0, connection.stickout],
 			end: [
 				0,
 				0,
-				calculatedLength+params.stickout+params.margin,
+				connection.stickout + params.stickout,
 			],
 			radius: params.tubeID/2,
-			resolution: 32,
+			resolution: params.outsideResolution,
 		});
 		
 		let textMargin = 0.001;
@@ -316,7 +251,7 @@ function buildCorner(wireframe, index, params, letterShapes){
 		idText = idText.letters
 			.rotateX(90)
 			.rotateY(90)
-			.translate([0, params.tubeID/2, calculatedLength+params.stickout+params.margin-textMargin]);
+			.translate([0, params.tubeID/2, connection.stickout+params.stickout-textMargin]);
 			
 		
 		console.log(edge);
@@ -331,7 +266,7 @@ function buildCorner(wireframe, index, params, letterShapes){
 		edgeText = edgeText.letters
 			.rotateX(90)
 			.rotateY(90)
-			.translate([0, params.tubeID/2, calculatedLength+params.stickout+params.margin-textMargin]);
+			.translate([0, params.tubeID/2, connection.stickout+params.stickout-textMargin]);
 			
 			
 		smallerCylinder = smallerCylinder.subtract(idText);
@@ -342,30 +277,31 @@ function buildCorner(wireframe, index, params, letterShapes){
 		smallerCylinder = smallerCylinder.subtract(edgeText.rotateZ(120+30));
 		smallerCylinder = smallerCylinder.subtract(edgeText.rotateZ(240+30));
 		
-		smallerCylinder = smallerCylinder.rotateY(yAngle);
-		smallerCylinder = smallerCylinder.rotateZ(zAngle);
+		cylinder = cylinder.union(smallerCylinder);
+		cylinder = cylinder.rotateY(connection.yAngle);
+		cylinder = cylinder.rotateZ(connection.zAngle);
 		
-		corner = corner.union(smallerCylinder);
+		corner = corner.union(cylinder);
 		
 		let hollowCylinder = CSG.cylinder({
 			start: [0, 0, 0],
 			end: [
 				0,
 				0,
-				calculatedLength+params.stickout+params.margin*2,
+				connection.stickout+params.stickout*2,
 			],
 			radius: params.hollowDiameter/2,
-			resolution: 8,
+			resolution: params.insideResolution,
 		});
-		hollowCylinder = hollowCylinder.rotateY(yAngle);
-		hollowCylinder = hollowCylinder.rotateZ(zAngle);
+		hollowCylinder = hollowCylinder.rotateY(connection.yAngle);
+		hollowCylinder = hollowCylinder.rotateZ(connection.zAngle);
 		hollowCylinders.push(hollowCylinder);
 	}
 	
 	let hollowCenter = CSG.sphere({
 		center: [0, 0, 0],
 		radius: (params.hollowDiameter/2)*1.01,
-		resolution: 8,
+		resolution: params.insideResolution,
 	});
 	corner = corner.subtract(hollowCenter);
 	
