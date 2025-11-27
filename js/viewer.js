@@ -144,7 +144,7 @@ async function loadFile(file){
 		
 		pointInfoEl.innerHTML += "<p>Connected edges: "+model.points[p].connections.length+"</p>";
 		
-		pointInfoEl.addEventListener("click", function(e){
+		pointInfoEl.addEventListener("click", async function(e){
 			
 			let pointInfoElements = document.getElementsByClassName("pointInfo");
 			for(let el in pointInfoElements){
@@ -153,7 +153,7 @@ async function loadFile(file){
 			
 			pointInfoEl.className = "pointInfo pointInfoActive";
 			
-			buildAndShowCorner(p);
+			await buildAndShowCorner(p);
 			
 		});
 		
@@ -266,7 +266,14 @@ async function loadShape(url){
 	
 }
 
-function buildAndShowCorner(cornerId){
+async function buildAndShowCorner(cornerId){
+	
+	const cornerPMon = new ProgressMonitor(document.body, {
+		itemsCount: 3,
+		title: "Building geometry..."
+	});
+	
+	await cornerPMon.start();
 	
 	for(let i in model.points){
 		model.points[i].previewRender.visible = false;
@@ -282,12 +289,17 @@ function buildAndShowCorner(cornerId){
 	
 	controls.update();
 	
-	let corner = buildCorner(model, cornerId, params, letterShapes);
+	let corner = await buildCorner(model, cornerId, params, letterShapes, cornerPMon);
+	
+	await cornerPMon.postMessage("Generating STL file...");
 	
 	generateStl(corner, cornerId);
 	
 	model.points[cornerId].builtGeometry = corner;
 	model.points[cornerId].geometryRender = renderer.addObject(corner.triangles, corner.normals, [1.0, 0.7, 0.0]);
+	
+	await cornerPMon.postMessage("Done!", "success");
+	await cornerPMon.finish(0, 500);
 	
 	controls.update();
 	

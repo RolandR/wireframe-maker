@@ -107,7 +107,7 @@ function ProgressMonitor(container, options){
 			activeTotalCountEl.innerHTML = activeTotalCount+")";
 			messageEl.appendChild(activeTotalCountEl);
 			
-			updateCountStep = Math.max(10, ~~(activeTotalCount/maxCountUpdateTimes));
+			updateCountStep = Math.max(1, ~~(activeTotalCount/maxCountUpdateTimes));
 			
 		}
 		

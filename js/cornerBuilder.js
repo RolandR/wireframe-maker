@@ -272,34 +272,24 @@ function buildCornerPreview(wireframe, index, params){
 }
 
 
-function buildCorner(wireframe, index, params, letterShapes){
-
+async function buildCorner(wireframe, index, params, letterShapes, cornerPMon){
+	
+	let point = wireframe.points[index];
+	
+	await cornerPMon.postMessage("Building edge connectors...", "info", point.connections.length);
+	await cornerPMon.updateCount(0);
+	
 	let corner = CSG.sphere({
 		center: [0, 0, 0],
 		radius: (params.tubeOD/2)*1.01,
 		resolution: params.outsideResolution,
 	});
 	
-	let point = wireframe.points[index];
-	
 	let xPos = point.x;
 	let yPos = point.y;
 	let zPos = point.z;
 	
 	let hollowCylinders = [];
-	
-	// textDifferenceCylinder is for making the text
-	// conform to the curve of the tube wall
-	/*let textDifferenceCylinder = CSG.cylinder({
-		start: [0, 0, 0-params.stickout],
-		end: [
-			0,
-			0,
-			0,
-		],
-		radius: params.tubeID/2 - params.textDepth,
-		resolution: params.outsideResolution,
-	});*/
 	
 	for(let i in point.connections){
 		
@@ -453,7 +443,14 @@ function buildCorner(wireframe, index, params, letterShapes){
 		hollowCylinder = hollowCylinder.rotateY(connection.yAngle);
 		hollowCylinder = hollowCylinder.rotateZ(connection.zAngle);
 		hollowCylinders.push(hollowCylinder);
+		
+		await cornerPMon.updateCount(i+1);
 	}
+	
+	await cornerPMon.updateProgress(1);
+	await cornerPMon.finishItem();
+	await cornerPMon.postMessage("Cutting hollow...", "info", hollowCylinders.length);
+	await cornerPMon.updateCount(0);
 	
 	let hollowCenter = CSG.sphere({
 		center: [0, 0, 0],
@@ -464,9 +461,13 @@ function buildCorner(wireframe, index, params, letterShapes){
 	
 	for(let i in hollowCylinders){
 		corner = corner.subtract(hollowCylinders[i]);
+		
+		i = parseInt(i);
+		await cornerPMon.updateCount(i+1);
 	}
 	
-	console.log(corner);
+	await cornerPMon.updateProgress(1);
+	await cornerPMon.finishItem();
 	
 	return triangulate(corner.toPolygons());
 	
