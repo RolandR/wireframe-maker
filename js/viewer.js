@@ -270,6 +270,7 @@ function buildAndShowCorner(cornerId){
 	
 	for(let i in model.points){
 		model.points[i].previewRender.visible = false;
+		model.points[i].previewPinsRender.visible = false;
 		if(model.points[i].geometryRender){
 			model.points[i].geometryRender.visible = false;
 		}

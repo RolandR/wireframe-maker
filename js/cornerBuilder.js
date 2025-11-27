@@ -364,6 +364,8 @@ function buildCorner(wireframe, index, params, letterShapes){
 		edgeText = edgeText.translate([0, 0, connection.stickout+params.stickout-params.textMargin]);
 			
 			
+		// TODO: Rotate text in a way that avoids the pin hole
+		
 		smallerCylinder = smallerCylinder.subtract(idText);
 		smallerCylinder = smallerCylinder.subtract(idText.rotateZ(120));
 		smallerCylinder = smallerCylinder.subtract(idText.rotateZ(240));
@@ -390,6 +392,53 @@ function buildCorner(wireframe, index, params, letterShapes){
 		cylinder = cylinder.rotateZ(connection.zAngle);
 		
 		corner = corner.union(cylinder);
+		
+		
+		// cut out hole for pin
+		
+		let edgeDirection = normaliseVec3({
+			x: other.x - xPos,
+			y: other.y - yPos,
+			z: other.z - zPos,
+		});
+		
+		let unitToX = edge.normal.x;
+		let unitToY = edge.normal.y;
+		let unitToZ = edge.normal.z;
+		
+		let distanceFromZAxis = Math.sqrt(Math.pow(unitToX, 2) + Math.pow(unitToY, 2));
+		let pinYAngle = Math.asin(distanceFromZAxis)*180/Math.PI;
+		if(unitToZ < 0){
+			pinYAngle = 180-pinYAngle;
+		}
+		
+		let pinZAngle = Math.asin(unitToY/distanceFromZAxis)*180/Math.PI;
+		if(unitToX < 0){
+			pinZAngle = 180-pinZAngle;
+		}
+		
+		let pinhole = CSG.cylinder({
+			start: [0, 0, -params.tubeOD*0.51],
+			end: [
+				0,
+				0,
+				params.tubeOD*0.51,
+			],
+			radius: 0.0025,
+			resolution: previewResolution,
+		});
+		
+		let pinPosition = connection.stickout + params.stickout/2;
+		
+		pinhole = pinhole.rotateY(pinYAngle);
+		pinhole = pinhole.rotateZ(pinZAngle);
+		pinhole = pinhole.translate([
+			pinPosition*edgeDirection.x,
+			pinPosition*edgeDirection.y, 
+			pinPosition*edgeDirection.z,
+		]);
+		
+		corner = corner.subtract(pinhole);
 		
 		let hollowCylinder = CSG.cylinder({
 			start: [0, 0, 0],
