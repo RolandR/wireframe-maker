@@ -98,6 +98,14 @@ function Controls(){
 
 		renderer.render(model, view, perspective);
 	}
+	
+	window.addEventListener("resize", function(event){
+		canvas.width = document.getElementById("canvasContainer").clientWidth;
+		canvas.height = document.getElementById("canvasContainer").clientHeight;
+		aspectRatio = canvas.width/canvas.height;
+		
+		update();
+	});
 
 	window.addEventListener("mousedown", function(e){
 		startX = e.clientX;

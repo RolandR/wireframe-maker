@@ -6,7 +6,7 @@ function Renderer(canvasId){
 	canvas.width = document.getElementById("canvasContainer").clientWidth;
 	canvas.height = document.getElementById("canvasContainer").clientHeight;
 	
-	const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+	const gl = canvas.getContext("webgl", {preserveDrawingBuffer: true}) || canvas.getContext("experimental-webgl", {preserveDrawingBuffer: true});
 
 	let shaderProgram;
 
