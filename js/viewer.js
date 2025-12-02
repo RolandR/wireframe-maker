@@ -1,14 +1,15 @@
 
 const params = {
 	tubeOD: 0.02,
-	tubeID: 0.0165,
+	tubeID: 0.0167,
 	stickout: 0.015,
 	margin: 0.001,
-	hollowDiameter: 0.012,
+	hollowDiameter: 0.0125,
+	pinHoleDiameter: 0.002,
 	connectorToPipeMargin: 0.001,
 	outsideResolution: 32,
-	insideResolution: 8,
-	textMargin: 0.001,
+	insideResolution: 16,
+	textMargin: 0.003,
 	textDepth: 0.0005,
 }
 
@@ -31,6 +32,7 @@ const vertexCountEl = document.getElementById("vertexCount");
 const pipeLengthEl = document.getElementById("pipeLength");
 
 const verticesContainer = document.getElementById("verticesContainer");
+const edgesContainer = document.getElementById("edgesContainer");
 
 let letterShapes = {};
 
@@ -113,6 +115,29 @@ async function loadFile(file){
 		await pMon.updateCount(p+1);
 	}
 	
+	let totalPipeLength = 0;
+	
+	for(let e in model.edges){
+		e = parseInt(e);
+		
+		calculateEdge(model, e, params);
+		
+		totalPipeLength += model.edges[e].pipeLength;
+		
+	}
+	
+	pipeLengthEl.innerHTML = totalPipeLength.toFixed(2) + " m";
+	
+	
+	model.edges.sort(function(a, b) {
+		// sort edges by length
+		return a.pipeLength - b.pipeLength;
+	});
+	
+	for(let e in model.edges){
+		model.edges[e].id = e;
+	}
+	
 	await pMon.updateProgress(1);
 	await pMon.finishItem();
 	await pMon.postMessage("Building preview corners...", "info", model.points.length);
@@ -142,7 +167,22 @@ async function loadFile(file){
 		
 		pointInfoEl.innerHTML += "<h3>Corner "+p+"</h3>";
 		
-		pointInfoEl.innerHTML += "<p>Connected edges: "+model.points[p].connections.length+"</p>";
+		let edgesEl = document.createElement("p");
+		edgesEl.innerHTML = model.points[p].connections.length;
+		edgesEl.innerHTML += " edges: ";
+		
+		let sortedConnections = model.points[p].connections.toSorted(function(a, b) {
+			return parseInt(a.edge.id) - parseInt(b.edge.id);
+		});
+		
+		for(let c in sortedConnections){
+			edgesEl.innerHTML += sortedConnections[c].edge.id;
+			if(c < sortedConnections.length - 1){
+				edgesEl.innerHTML += ", "
+			}
+		}
+		
+		pointInfoEl.appendChild(edgesEl);
 		
 		pointInfoEl.addEventListener("click", async function(e){
 			
@@ -187,27 +227,40 @@ async function loadFile(file){
 	await pMon.finishItem();
 	await pMon.postMessage("Building preview edges...", "info", model.edges.length);
 	
-	let totalPipeLength = 0;
-	
 	for(let e in model.edges){
 		e = parseInt(e);
 		
-		calculateEdge(model, e, params);
+		let edgeInfoEl = document.createElement("div");
+		edgeInfoEl.className = "edgeInfo";
 		
-		totalPipeLength += model.edges[e].pipeLength;
+		edgeInfoEl.innerHTML += "<h3>Edge "+e+"</h3>";
+		
+		edgeInfoEl.innerHTML += "<p>Length: "+(Math.round(model.edges[e].pipeLength*10000)/10)+" mm"
+			+" | connects "+model.edges[e].a.id+" and "+model.edges[e].b.id+"</p>";
+		
+		edgeInfoEl.addEventListener("mouseenter", function(event){
+			
+			for(let i in model.points){
+				model.points[i].previewRender.color = cornerDefaultColor;
+			}
+			
+			for(let i in model.edges){
+				model.edges[i].previewRender.color = edgeDefaultColor;
+			}
+			
+			model.edges[e].previewRender.color = edgeHighlightColor;
+			model.edges[e].a.previewRender.color = cornerHighlightColor;
+			model.edges[e].b.previewRender.color = cornerHighlightColor;
+			
+			controls.update();
+			
+		});
+		
+		edgesContainer.appendChild(edgeInfoEl);
+		
 	}
 	
-	pipeLengthEl.innerHTML = totalPipeLength.toFixed(2) + " m";
-	
-	
-	model.edges.sort(function(a, b) {
-		// sort edges by length
-		return a.pipeLength - b.pipeLength;
-	});
-	
-	for(let e in model.edges){
-		model.edges[e].id = e;
-	}
+	edgesContainer.style.display = "block";
 	
 	
 	for(let e in model.edges){

@@ -101,25 +101,30 @@ input[type=file]{
 	display: none;
 }
 
-#verticesContainer{
+#verticesContainer,
+#edgesContainer{
 	display: none;
 	overflow-y: auto;
+	flex: 1;
 }
 
-.pointInfo{
+.pointInfo,
+.edgeInfo{
 	border: 1px rgba(255, 255, 255, 0.15) solid;
 	margin-bottom: 7px;
 	padding: 0px 5px 3px 5px;
 	background-color: rgba(0, 0, 0, 0.2);
 }
 
-.pointInfo:hover{
+.pointInfo:hover,
+.edgeInfo:hover{
 	cursor: pointer;
 	border: 1px rgba(255, 255, 255, 0.25) solid;
 	background-color: rgba(0, 0, 0, 0.1);
 }
 
-.pointInfo.pointInfoActive{
+.pointInfo.pointInfoActive,
+.edgeInfo.edgeInfoActive{
 	border: 1px rgba(255, 100, 0, 1.0) solid;
 	background-color: rgba(255, 100, 0, 0.1);
 }

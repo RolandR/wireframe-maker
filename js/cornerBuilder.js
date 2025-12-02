@@ -174,7 +174,7 @@ function buildPinsPreview(wireframe, index, params){
 				0,
 				params.tubeOD*0.7,
 			],
-			radius: 0.0015,
+			radius: params.pinHoleDiameter/2,
 			resolution: previewResolution,
 		});
 		
@@ -250,6 +250,24 @@ function buildCornerPreview(wireframe, index, params){
 		cylinder = cylinder.translate([xPos, yPos, zPos]);
 		
 		cornerParts.push(cylinder);
+		
+		/*let debug = CSG.cylinder({
+			start: [-params.tubeOD*2, 0, 0],
+			end: [
+				params.tubeOD*2,
+				0,
+				0,
+			],
+			radius: 0.0015,
+			resolution: previewResolution,
+		});
+		
+		debug = debug.translate([0, 0, connection.stickout]);
+		debug = debug.rotateY(connection.yAngle);
+		debug = debug.rotateZ(connection.zAngle);
+		debug = debug.translate([xPos, yPos, zPos]);
+		
+		cornerParts.push(debug);*/
 	}
 	
 	
@@ -414,7 +432,7 @@ async function buildCorner(wireframe, index, params, letterShapes, cornerPMon){
 				0,
 				params.tubeOD*0.51,
 			],
-			radius: 0.0025,
+			radius: params.pinHoleDiameter/2,
 			resolution: previewResolution,
 		});
 		
