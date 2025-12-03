@@ -56,10 +56,6 @@ function triangulate(csgPolygons){
 				triangles.push(csgPolygons[p].vertices[v].pos.y);
 				triangles.push(csgPolygons[p].vertices[v].pos.z);
 				
-				//normals.push(csgPolygons[p].vertices[v].normal.x);
-				//normals.push(csgPolygons[p].vertices[v].normal.y);
-				//normals.push(csgPolygons[p].vertices[v].normal.z);
-				
 				normals.push(normal.x);
 				normals.push(normal.y);
 				normals.push(normal.z);
@@ -84,20 +80,6 @@ function triangulate(csgPolygons){
 				triangles.push(csgPolygons[p].vertices[t].pos.x);
 				triangles.push(csgPolygons[p].vertices[t].pos.y);
 				triangles.push(csgPolygons[p].vertices[t].pos.z);
-				
-				
-				
-				//normals.push(csgPolygons[p].vertices[0].normal.x);
-				//normals.push(csgPolygons[p].vertices[0].normal.y);
-				//normals.push(csgPolygons[p].vertices[0].normal.z);
-				
-				//normals.push(csgPolygons[p].vertices[t-1].normal.x);
-				//normals.push(csgPolygons[p].vertices[t-1].normal.y);
-				//normals.push(csgPolygons[p].vertices[t-1].normal.z);
-				
-				//normals.push(csgPolygons[p].vertices[t].normal.x);
-				//normals.push(csgPolygons[p].vertices[t].normal.y);
-				//normals.push(csgPolygons[p].vertices[t].normal.z);
 				
 				
 				normals.push(normal.x);

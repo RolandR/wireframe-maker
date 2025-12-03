@@ -1,3 +1,47 @@
+
+function calculateNormalFromTriangle(triangle){
+	let normal = {
+		x: 0,
+		y: 0,
+		z: 0,
+	};
+	
+	let a = {
+		x: triangle.points[1].x - triangle.points[0].x,
+		y: triangle.points[1].y - triangle.points[0].y,
+		z: triangle.points[1].z - triangle.points[0].z,
+	};
+	
+	let b = {
+		x: triangle.points[2].x - triangle.points[0].x,
+		y: triangle.points[2].y - triangle.points[0].y,
+		z: triangle.points[2].z - triangle.points[0].z,
+	};
+	
+	normal.x = a.y*b.z - a.z*b.y;
+	normal.y = a.z*b.x - a.x*b.z;
+	normal.z = a.x*b.y - a.y*b.x;
+	
+	return normaliseVec3(normal);
+}
+
+function normaliseVec3(vector){
+	
+	let newVector = {x: 0, y: 0, z: 0};
+	
+	let vecLength = Math.sqrt(
+		Math.pow(vector.x, 2) +
+		Math.pow(vector.y, 2) +
+		Math.pow(vector.z, 2)
+	);
+	
+	newVector.x = vector.x/vecLength;
+	newVector.y = vector.y/vecLength;
+	newVector.z = vector.z/vecLength;
+	
+	return newVector;
+}
+
 function multiplyMatrices(a, b){
 
 	var result = [];
