@@ -13,8 +13,9 @@ function calculateCorner(wireframe, index, params){
 	for(let i in point.connections){
 		i = parseInt(i);
 
-		let edge = point.connections[i].edge;
-		let other = point.connections[i].point;
+		let connection = point.connections[i];
+		let edge = connection.edge;
+		let other = connection.point;
 		
 		let toX = other.x - xPos;
 		let toY = other.y - yPos;
@@ -66,7 +67,7 @@ function calculateCorner(wireframe, index, params){
 		
 		let calculatedLength = params.tubeOD/2 * (1/Math.tan(smallestAngle/2));
 		
-		point.connections[i].stickout = calculatedLength+params.margin;
+		connection.stickout = calculatedLength+params.margin;
 		
 		let distanceFromZAxis = Math.sqrt(Math.pow(unitToX, 2) + Math.pow(unitToY, 2));
 		let yAngle = Math.asin(distanceFromZAxis)*180/Math.PI;
@@ -74,7 +75,7 @@ function calculateCorner(wireframe, index, params){
 			yAngle = 180-yAngle;
 		}
 		
-		point.connections[i].yAngle = yAngle;
+		connection.yAngle = yAngle;
 		
 		
 		let zAngle = Math.asin(unitToY/distanceFromZAxis)*180/Math.PI;
@@ -82,7 +83,32 @@ function calculateCorner(wireframe, index, params){
 			zAngle = 180-zAngle;
 		}
 		
-		point.connections[i].zAngle = zAngle;
+		connection.zAngle = zAngle;
+		
+		
+		// calculate pin angle
+		
+		let pinToX = edge.normal.x;
+		let pinToY = edge.normal.y;
+		let pinToZ = edge.normal.z;
+		
+		let reverseYAngle = (((-connection.yAngle)*Math.PI)/180);
+		let reverseZAngle = (((-connection.zAngle)*Math.PI)/180);
+		
+		let newX = pinToX*Math.cos(reverseZAngle) - pinToY*Math.sin(reverseZAngle);
+		let newY = pinToX*Math.sin(reverseZAngle) + pinToY*Math.cos(reverseZAngle);
+		let newZ = pinToZ;
+		
+		let rotatedX = newX*Math.cos(reverseYAngle) + newZ*Math.sin(reverseYAngle);
+		let rotatedY = newY;
+		let rotatedZ = -newX*Math.sin(reverseYAngle) + newZ*Math.cos(reverseYAngle);
+		
+		let pinZAngle = Math.asin(rotatedY)*180/Math.PI;
+		if(rotatedX < 0){
+			pinZAngle = 180-pinZAngle;
+		}
+		
+		connection.pinZAngle = pinZAngle;
 		
 	}
 	
@@ -151,44 +177,25 @@ function buildPinsPreview(wireframe, index, params){
 			z: other.z - zPos,
 		});
 		
-		let unitToX = edge.normal.x;
-		let unitToY = edge.normal.y;
-		let unitToZ = edge.normal.z;
-		
-		let distanceFromZAxis = Math.sqrt(Math.pow(unitToX, 2) + Math.pow(unitToY, 2));
-		let yAngle = Math.asin(distanceFromZAxis)*180/Math.PI;
-		if(unitToZ < 0){
-			yAngle = 180-yAngle;
-		}
-		
-		let zAngle = Math.asin(unitToY/distanceFromZAxis)*180/Math.PI;
-		if(unitToX < 0){
-			zAngle = 180-zAngle;
-		}
-		
-		
-		let cylinder = CSG.cylinder({
-			start: [0, 0, -params.tubeOD*0.6],
-			end: [
-				0,
-				0,
-				params.tubeOD*0.7,
-			],
-			radius: params.pinHoleDiameter/2,
+		let pin = CSG.cylinder({
+			start: [-params.tubeOD*0.7, 0, 0],
+			end: [params.tubeOD*0.7, 0, 0],
+			radius: (params.pinHoleDiameter)/2,
 			resolution: previewResolution,
 		});
 		
 		let pinPosition = connection.stickout + params.stickout/2;
 		
-		cylinder = cylinder.rotateY(yAngle);
-		cylinder = cylinder.rotateZ(zAngle);
-		cylinder = cylinder.translate([
+		pin = pin.rotateZ(connection.pinZAngle);
+		pin = pin.rotateY(connection.yAngle);
+		pin = pin.rotateZ(connection.zAngle);
+		pin = pin.translate([
 			xPos+pinPosition*edgeDirection.x,
 			yPos+pinPosition*edgeDirection.y, 
 			zPos+pinPosition*edgeDirection.z,
 		]);
 		
-		pins.push(cylinder);
+		pins.push(pin);
 	}
 	
 	let triangles = [];
@@ -251,23 +258,6 @@ function buildCornerPreview(wireframe, index, params){
 		
 		cornerParts.push(cylinder);
 		
-		/*let debug = CSG.cylinder({
-			start: [-params.tubeOD*2, 0, 0],
-			end: [
-				params.tubeOD*2,
-				0,
-				0,
-			],
-			radius: 0.0015,
-			resolution: previewResolution,
-		});
-		
-		debug = debug.translate([0, 0, connection.stickout]);
-		debug = debug.rotateY(connection.yAngle);
-		debug = debug.rotateZ(connection.zAngle);
-		debug = debug.translate([xPos, yPos, zPos]);
-		
-		cornerParts.push(debug);*/
 	}
 	
 	
@@ -372,15 +362,13 @@ async function buildCorner(wireframe, index, params, letterShapes, cornerPMon){
 		edgeText = edgeText.translate([0, 0, connection.stickout+params.stickout-params.textMargin]);
 			
 			
-		// TODO: Rotate text in a way that avoids the pin hole
+		const textSeparationHalfAngle = 31;
 		
-		smallerCylinder = smallerCylinder.subtract(idText);
-		smallerCylinder = smallerCylinder.subtract(idText.rotateZ(120));
-		smallerCylinder = smallerCylinder.subtract(idText.rotateZ(240));
+		smallerCylinder = smallerCylinder.subtract(idText.rotateZ(connection.pinZAngle-textSeparationHalfAngle));
+		smallerCylinder = smallerCylinder.subtract(idText.rotateZ(connection.pinZAngle+180-textSeparationHalfAngle));
 		
-		smallerCylinder = smallerCylinder.subtract(edgeText.rotateZ(50));
-		smallerCylinder = smallerCylinder.subtract(edgeText.rotateZ(120+50));
-		smallerCylinder = smallerCylinder.subtract(edgeText.rotateZ(240+50));
+		smallerCylinder = smallerCylinder.subtract(edgeText.rotateZ(connection.pinZAngle+textSeparationHalfAngle));
+		smallerCylinder = smallerCylinder.subtract(edgeText.rotateZ(connection.pinZAngle+180+textSeparationHalfAngle));
 		
 		let textDepthCylinder = CSG.cylinder({
 			start: [0, 0, connection.stickout],
@@ -395,42 +383,14 @@ async function buildCorner(wireframe, index, params, letterShapes, cornerPMon){
 		
 		smallerCylinder = smallerCylinder.union(textDepthCylinder);
 		
-		cylinder = cylinder.union(smallerCylinder);
-		cylinder = cylinder.rotateY(connection.yAngle);
-		cylinder = cylinder.rotateZ(connection.zAngle);
-		
-		corner = corner.union(cylinder);
-		
-		
 		// cut out hole for pin
 		
-		let edgeDirection = normaliseVec3({
-			x: other.x - xPos,
-			y: other.y - yPos,
-			z: other.z - zPos,
-		});
-		
-		let unitToX = edge.normal.x;
-		let unitToY = edge.normal.y;
-		let unitToZ = edge.normal.z;
-		
-		let distanceFromZAxis = Math.sqrt(Math.pow(unitToX, 2) + Math.pow(unitToY, 2));
-		let pinYAngle = Math.asin(distanceFromZAxis)*180/Math.PI;
-		if(unitToZ < 0){
-			pinYAngle = 180-pinYAngle;
-		}
-		
-		let pinZAngle = Math.asin(unitToY/distanceFromZAxis)*180/Math.PI;
-		if(unitToX < 0){
-			pinZAngle = 180-pinZAngle;
-		}
-		
 		let pinhole = CSG.cylinder({
-			start: [0, 0, -params.tubeOD*0.51],
+			start: [-params.tubeOD*0.51, 0, 0],
 			end: [
-				0,
-				0,
 				params.tubeOD*0.51,
+				0,
+				0,
 			],
 			radius: params.pinHoleDiameter/2,
 			resolution: previewResolution,
@@ -438,15 +398,17 @@ async function buildCorner(wireframe, index, params, letterShapes, cornerPMon){
 		
 		let pinPosition = connection.stickout + params.stickout/2;
 		
-		pinhole = pinhole.rotateY(pinYAngle);
-		pinhole = pinhole.rotateZ(pinZAngle);
-		pinhole = pinhole.translate([
-			pinPosition*edgeDirection.x,
-			pinPosition*edgeDirection.y, 
-			pinPosition*edgeDirection.z,
-		]);
+		pinhole = pinhole.rotateZ(connection.pinZAngle);
+		pinhole = pinhole.translate([0, 0, pinPosition]);
 		
-		corner = corner.subtract(pinhole);
+		smallerCylinder = smallerCylinder.subtract(pinhole);
+		
+		
+		cylinder = cylinder.union(smallerCylinder);
+		cylinder = cylinder.rotateY(connection.yAngle);
+		cylinder = cylinder.rotateZ(connection.zAngle);
+		
+		corner = corner.union(cylinder);
 		
 		let hollowCylinder = CSG.cylinder({
 			start: [0, 0, 0],
@@ -494,8 +456,8 @@ async function buildCorner(wireframe, index, params, letterShapes, cornerPMon){
 
 function setText(text){
 	
-	const letterHeight = 0.006;
-	const letterWidth = 0.004;
+	const letterHeight = params.textSize;
+	const letterWidth = letterHeight*0.75;
 	
 	let letters = [];
 	for(let i in text){
