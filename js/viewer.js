@@ -430,9 +430,9 @@ function generateStl(geometry, displayId){
 		view.setFloat32(byteOffset+8, 0);
 		byteOffset += 12;
 		// Point C
-		view.setFloat32(byteOffset+0, geometry.triangles[t+0]*exportScale, true);
-		view.setFloat32(byteOffset+4, geometry.triangles[t+1]*exportScale, true);
-		view.setFloat32(byteOffset+8, geometry.triangles[t+2]*exportScale, true);
+		view.setFloat32(byteOffset+0, geometry.triangles[t+6]*exportScale, true);
+		view.setFloat32(byteOffset+4, geometry.triangles[t+7]*exportScale, true);
+		view.setFloat32(byteOffset+8, geometry.triangles[t+8]*exportScale, true);
 		byteOffset += 12;
 		// Point B
 		view.setFloat32(byteOffset+0, geometry.triangles[t+3]*exportScale, true);
@@ -440,9 +440,9 @@ function generateStl(geometry, displayId){
 		view.setFloat32(byteOffset+8, geometry.triangles[t+5]*exportScale, true);
 		byteOffset += 12;
 		// Point A
-		view.setFloat32(byteOffset+0, geometry.triangles[t+6]*exportScale, true);
-		view.setFloat32(byteOffset+4, geometry.triangles[t+7]*exportScale, true);
-		view.setFloat32(byteOffset+8, geometry.triangles[t+8]*exportScale, true);
+		view.setFloat32(byteOffset+0, geometry.triangles[t+0]*exportScale, true);
+		view.setFloat32(byteOffset+4, geometry.triangles[t+1]*exportScale, true);
+		view.setFloat32(byteOffset+8, geometry.triangles[t+2]*exportScale, true);
 		byteOffset += 12;
 		// Attribute byte count (always 0)
 		view.setUint16(byteOffset, 0);
