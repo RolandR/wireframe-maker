@@ -139,7 +139,8 @@ for solid CAD anyway.
             return CSG.Polygon.fromObject(p);
         });
         var csg = CSG.fromPolygons(polygons);
-        csg = csg.canonicalized();
+        csg.isCanonicalized = obj.isCanonicalized;
+        csg.isRetesselated  = obj.isRetesselated;
         return csg;
     };
 
@@ -957,7 +958,8 @@ for solid CAD anyway.
         // So that it is in an orientation suitable for CNC milling
         getTransformationAndInverseTransformationToFlatLying: function() {
             if (this.polygons.length === 0) {
-                return new CSG.Matrix4x4(); // unity
+                var m = new CSG.Matrix4x4(); // unity
+                return [m,m];
             } else {
                 // get a list of unique planes in the CSG:
                 var csg = this.canonicalized();
@@ -5437,7 +5439,7 @@ for solid CAD anyway.
     CSG.addCenteringToPrototype = function(prot, axes) {
         prot.center = function(cAxes) {
             cAxes = Array.prototype.map.call(arguments, function(a) {
-                return a; //.toLowerCase();
+                return a.toLowerCase();
             });
             // no args: center on all axes
             if (!cAxes.length) {
@@ -5457,6 +5459,17 @@ for solid CAD anyway.
     // Each side is a line between 2 points
     var CAG = function() {
         this.sides = [];
+        this.isCanonicalized = false;
+    };
+
+    // create from an untyped object with identical property names.
+    CAG.fromObject = function(obj) {
+        var sides = obj.sides.map(function(s) {
+            return CAG.Side.fromObject(s);
+        });
+        var cag = CAG.fromSides(sides);
+        cag.isCanonicalized = obj.isCanonicalized;
+        return cag;
     };
 
     // Construct a CAG from a list of `CAG.Side` instances.
@@ -5568,41 +5581,6 @@ for solid CAD anyway.
             prevvertex = vertex;
         }
         return CAG.fromSides(sides);
-    };
-
-    /* Construct an ellispe
-    options:
-      center: a 2D center point
-      radius: a 2D vector with width and height
-      resolution: number of sides per 360 degree rotation
-    returns a CAG object
-    */
-    CAG.ellipse = function(options) {
-        options = options || {};
-        var c = CSG.parseOptionAs2DVector(options, "center", [0, 0]);
-        var r = CSG.parseOptionAs2DVector(options, "radius", [1, 1]);
-        r = r.abs(); // negative radii make no sense
-        var res = CSG.parseOptionAsInt(options, "resolution", CSG.defaultResolution2D);
-
-        var e2 = new CSG.Path2D([[c.x,c.y + r.y]]);
-        e2 = e2.appendArc([c.x,c.y - r.y], {
-            xradius: r.x,
-            yradius: r.y,
-            xaxisrotation: 0,
-            resolution: res,
-            clockwise: true,
-            large: false,
-        });
-        e2 = e2.appendArc([c.x,c.y + r.y], {
-            xradius: r.x,
-            yradius: r.y,
-            xaxisrotation: 0,
-            resolution: res,
-            clockwise: true,
-            large: false,
-        });
-        e2 = e2.close();
-        return e2.innerToCAG();
     };
 
     /* Construct a rectangle
@@ -6044,8 +6022,12 @@ for solid CAD anyway.
         // by rotating around the plane's origin. An additional right-hand vector should be specified as well,
         // and this is exactly a CSG.OrthoNormalBasis.
         // orthonormalbasis: characterizes the plane in which to extrude
-        // depth: thickness of the extruded shape. Extrusion is done symmetrically above and below the plane.
-        extrudeInOrthonormalBasis: function(orthonormalbasis, depth) {
+        // depth: thickness of the extruded shape. Extrusion is done from the plane towards above (unless 
+        // symmetrical option is set, see below)
+        //
+        // options:
+        //   {symmetrical: true}  // extrude symmetrically in two directions about the plane
+        extrudeInOrthonormalBasis: function(orthonormalbasis, depth, options) {
             // first extrude in the regular Z plane:
             if (!(orthonormalbasis instanceof CSG.OrthoNormalBasis)) {
                 throw new Error("extrudeInPlane: the first parameter should be a CSG.OrthoNormalBasis");
@@ -6053,6 +6035,10 @@ for solid CAD anyway.
             var extruded = this.extrude({
                 offset: [0, 0, depth]
             });
+            if(CSG.parseOptionAsBool(options, "symmetrical", false))
+            {
+                extruded = extruded.translate([0,0,-depth/2]);
+            }
             var matrix = orthonormalbasis.getInverseProjectionMatrix();
             extruded = extruded.transform(matrix);
             return extruded;
@@ -6062,8 +6048,8 @@ for solid CAD anyway.
         // one of ["X","Y","Z","-X","-Y","-Z"]
         // The 2d x axis will map to the first given 3D axis, the 2d y axis will map to the second.
         // See CSG.OrthoNormalBasis.GetCartesian for details.
-        extrudeInPlane: function(axis1, axis2, depth) {
-            return this.extrudeInOrthonormalBasis(CSG.OrthoNormalBasis.GetCartesian(axis1, axis2), depth);
+        extrudeInPlane: function(axis1, axis2, depth, options) {
+            return this.extrudeInOrthonormalBasis(CSG.OrthoNormalBasis.GetCartesian(axis1, axis2), depth, options);
         },
 
         // extruded=cag.extrude({offset: [0,0,10], twistangle: 360, twiststeps: 100});
@@ -6381,6 +6367,10 @@ for solid CAD anyway.
         this.pos = pos;
     };
 
+    CAG.Vertex.fromObject = function(obj) {
+        return new CAG.Vertex(new CSG.Vector2D(obj.pos._x,obj.pos._y));
+    };
+
     CAG.Vertex.prototype = {
         toString: function() {
             return "(" + this.pos.x.toFixed(2) + "," + this.pos.y.toFixed(2) + ")";
@@ -6400,6 +6390,12 @@ for solid CAD anyway.
         if (!(vertex1 instanceof CAG.Vertex)) throw new Error("Assertion failed");
         this.vertex0 = vertex0;
         this.vertex1 = vertex1;
+    };
+
+    CAG.Side.fromObject = function(obj) {
+        var vertex0 = CAG.Vertex.fromObject(obj.vertex0);
+        var vertex1 = CAG.Vertex.fromObject(obj.vertex1);
+        return new CAG.Side(vertex0,vertex1);
     };
 
     CAG.Side._fromFakePolygon = function(polygon) {
