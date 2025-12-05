@@ -4,7 +4,7 @@ const params = {
 	stickout: 0.015,
 	margin: 0.001,
 	hollowDiameter: 0.0125,
-	pinHoleDiameter: 0.002,
+	pinHoleDiameter: 0.0035,
 	connectorToPipeMargin: 0.001,
 	outsideResolution: 32,
 	insideResolution: 16,
