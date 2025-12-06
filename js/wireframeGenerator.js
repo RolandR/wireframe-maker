@@ -112,7 +112,7 @@ async function loadFile(file){
 		
 	}
 	
-	pipeLengthEl.innerHTML = totalPipeLength.toFixed(2) + " m";
+	pipeLengthEl.innerHTML = (totalPipeLength/1000).toFixed(2) + " m";
 	
 	
 	model.edges.sort(function(a, b) {
@@ -221,7 +221,7 @@ async function loadFile(file){
 		
 		edgeInfoEl.innerHTML += "<h3>Edge "+e+"</h3>";
 		
-		edgeInfoEl.innerHTML += "<p>Length: "+(Math.round(model.edges[e].pipeLength*10000)/10)+" mm"
+		edgeInfoEl.innerHTML += "<p>Length: "+(Math.round(model.edges[e].pipeLength*10)/10)+" mm"
 			+" | connects "+model.edges[e].a.id+" and "+model.edges[e].b.id+"</p>";
 		
 		edgeInfoEl.addEventListener("mouseenter", function(event){
@@ -362,6 +362,8 @@ function process3dData(data){
 		if(!vertices[i]){
 			vertices[i] = 0;
 		}
+		
+		vertices[i] = vertices[i]*1000;
 		
 		var n = i % 3;
 		

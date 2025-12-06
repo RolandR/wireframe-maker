@@ -6,7 +6,7 @@
 
 function generateStl(geometry, displayId){
 	
-	let exportScale = -1000;
+	let exportScale = -1;
 	
 	const numTriangles = geometry.triangles.length/9;
 	const sizeBytes = 84+(numTriangles*50);

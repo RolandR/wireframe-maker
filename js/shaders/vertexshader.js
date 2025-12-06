@@ -36,7 +36,7 @@ void main(void){
     
     lighting = ambientLight + (directionalLightColor * directional * 1.0);
 
-	vec4 coords = vec4(coordinates.xzy, 1.0);
+	vec4 coords = vec4(coordinates.xzy/1000.0, 1.0);
 
 	coords = perspective * view * model * coords;
 	
