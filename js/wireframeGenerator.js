@@ -56,6 +56,9 @@ loadFile(file, function(response){
 
 async function loadFile(file){
 	
+	let filename = file.name;
+	filename = filename.replace(/\.stl$/i, "");
+	
 	const reader = new FileReader();
 	
 	await pMon.start();
@@ -128,14 +131,25 @@ async function loadFile(file){
 	await pMon.finishItem();
 	await pMon.postMessage("Building preview corners...", "info", model.points.length);
 	
+	let previewGeometry = {
+		triangles: [],
+		normals: [],
+	};
+	
 	for(let p in model.points){
 		p = parseInt(p);
 		
 		let cornerPreview = buildCornerPreview(model, p, params);
 		
+		previewGeometry.triangles = previewGeometry.triangles.concat(cornerPreview.triangles);
+		previewGeometry.normals = previewGeometry.normals.concat(cornerPreview.normals);
+		
 		model.points[p].previewRender = renderer.addObject(cornerPreview.triangles, cornerPreview.normals, cornerDefaultColor);
 		
 		let pinsPreview = buildPinsPreview(model, p, params);
+		
+		previewGeometry.triangles = previewGeometry.triangles.concat(pinsPreview.triangles);
+		previewGeometry.normals = previewGeometry.normals.concat(pinsPreview.normals);
 		
 		model.points[p].previewPinsRender = renderer.addObject(pinsPreview.triangles, pinsPreview.normals, pinDefaultColor);
 		
@@ -254,10 +268,23 @@ async function loadFile(file){
 		
 		let edgePreview = buildEdgePreview(model, e, params);
 		
+		previewGeometry.triangles = previewGeometry.triangles.concat(edgePreview.triangles);
+		previewGeometry.normals = previewGeometry.normals.concat(edgePreview.normals);
+		
 		model.edges[e].previewRender = renderer.addObject(edgePreview.triangles, edgePreview.normals, edgeDefaultColor);
 		
 		await pMon.updateCount(e+1);
 	}
+	
+	
+	let objectUrl = generateStl(previewGeometry, 1);
+	
+	const downloadLink = document.getElementById("downloadLink");
+	downloadLink.innerHTML = "Download this preview (.stl)";
+	downloadLink.href = objectUrl;
+	downloadLink.download = filename+"-wireframe-preview.stl";
+	downloadLink.style.display = "block";
+	
 	
 	controls = new Controls();
 	
@@ -332,7 +359,14 @@ async function buildAndShowCorner(cornerId){
 	
 	await cornerPMon.postMessage("Generating STL file...");
 	
-	generateStl(corner, cornerId);
+	let objectUrl = generateStl(corner, -1);
+	
+	const downloadLink = document.getElementById("downloadLink");
+	downloadLink.innerHTML = "Download corner (.stl)";
+	downloadLink.href = objectUrl;
+	downloadLink.download = "corner" + cornerId + ".stl";
+	downloadLink.style.display = "block";
+	
 	
 	model.points[cornerId].builtGeometry = corner;
 	model.points[cornerId].geometryRender = renderer.addObject(corner.triangles, corner.normals, [1.0, 0.7, 0.0]);

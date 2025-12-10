@@ -4,9 +4,7 @@
 
 
 
-function generateStl(geometry, displayId){
-	
-	let exportScale = -1;
+function generateStl(geometry, exportScale){
 	
 	const numTriangles = geometry.triangles.length/9;
 	const sizeBytes = 84+(numTriangles*50);
@@ -58,16 +56,13 @@ function generateStl(geometry, displayId){
 		
 	}
 	
-	console.log("byteOffset: "+byteOffset);
-	console.log("calculated: "+numTriangles+" Triangles, "+sizeBytes);
+	//console.log("byteOffset: "+byteOffset);
+	//console.log("calculated: "+numTriangles+" Triangles, "+sizeBytes);
 	
 	var blob = new Blob([view.buffer], {type: "model/stl"});
     var objectUrl = URL.createObjectURL(blob);
 	
-	const downloadLink = document.getElementById("downloadLink");
-	downloadLink.href = objectUrl;
-	downloadLink.download = "corner" + displayId + ".stl";
-	downloadLink.style.display = "block";
+	return objectUrl;
 	
 }
 

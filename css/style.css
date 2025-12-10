@@ -136,4 +136,5 @@ input[type=file]{
 	font-size: 22px;
 	height: 39px;
 	line-height: 27px;
+	display: none;
 }
