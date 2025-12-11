@@ -77,14 +77,17 @@ function calculateCorner(wireframe, index, params){
 		
 		connection.yAngle = yAngle;
 		
-		
-		let zAngle = Math.asin(unitToY/distanceFromZAxis)*180/Math.PI;
+		let zAngle = 0;
+		if(distanceFromZAxis != 0){
+			zAngle = Math.asin(unitToY/distanceFromZAxis)*180/Math.PI;
+		}
 		if(unitToX < 0){
 			zAngle = 180-zAngle;
 		}
 		
 		connection.zAngle = zAngle;
 		
+
 		
 		// calculate pin angle
 		
