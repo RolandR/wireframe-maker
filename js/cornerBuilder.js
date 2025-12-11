@@ -106,6 +106,13 @@ function calculateCorner(wireframe, index, params){
 		let rotatedY = newY;
 		let rotatedZ = -newX*Math.sin(reverseYAngle) + newZ*Math.cos(reverseYAngle);
 		
+		// floating point errors can sometimes cause rotatedY to becom a smidge longer than 1
+		if(rotatedY > 1){
+			rotatedY = 1;
+		} else if(rotatedY < -1){
+			rotatedY = -1;
+		}
+		
 		let pinZAngle = Math.asin(rotatedY)*180/Math.PI;
 		if(rotatedX < 0){
 			pinZAngle = 180-pinZAngle;
