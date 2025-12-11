@@ -26,6 +26,8 @@ function Controls(model, renderer){
 	var startY = 0;
 	
 	let currentlyMousedOver;
+	const infoElPaddingX = 5;
+	const infoElPaddingY = 15;
 
 	var fieldOfViewInRadians = 50/180*Math.PI;
 	var aspectRatio = canvas.width/canvas.height;
@@ -161,7 +163,27 @@ function Controls(model, renderer){
 		let mouseX = e.clientX;
 		let mouseY = e.clientY;
 		
-		contextInfoEl.style.transform = "translate("+mouseX+"px, "+mouseY+"px)";
+		let rect = contextInfoEl.getBoundingClientRect();
+		
+		const spaceToRight = window.innerWidth - (mouseX + rect.width + infoElPaddingX);
+		const spaceToBottom = window.innerHeight - (mouseY + rect.height + infoElPaddingY);
+		const spaceToLeft = mouseX - (rect.width + infoElPaddingX);
+		const spaceToTop = mouseY - (rect.height + infoElPaddingY);
+		
+		//console.log(spaceToRight, spaceToBottom, spaceToLeft, spaceToTop);
+		
+		let posX = mouseX+infoElPaddingX;
+		let posY = mouseY+infoElPaddingY;
+		
+		if(spaceToRight < 0 && spaceToRight < spaceToLeft){
+			posX = mouseX - rect.width - infoElPaddingX;
+		}
+		
+		if(spaceToBottom < 0 && spaceToBottom < spaceToTop){
+			posY = mouseY - rect.height - infoElPaddingY;
+		}
+		
+		contextInfoEl.style.transform = "translate("+posX+"px, "+posY+"px)";
 		
 		if(currentlyMousedOver == id || (currentlyMousedOver && currentlyMousedOver.id == id.id && currentlyMousedOver.type == id.type)){
 			// we're already showing that
