@@ -211,22 +211,18 @@ async function loadFile(file){
 		
 		pointInfoEl.addEventListener("mouseenter", function(e){
 			
-			for(let i in model.points){
-				model.points[i].previewRender.color = cornerDefaultColor;
-			}
-			
-			for(let i in model.edges){
-				model.edges[i].previewRender.color = edgeDefaultColor;
-			}
-			
-			model.points[p].previewRender.color = cornerHighlightColor;
+			let highlightObjects = [model.points[p]];
 			
 			for(let i in model.points[p].connections){
-				model.points[p].connections[i].edge.previewRender.color = edgeHighlightColor;
+				highlightObjects.push(model.points[p].connections[i].edge);
 			}
 			
-			controls.update();
+			controls.highlight(highlightObjects);
 			
+		});
+		
+		pointInfoEl.addEventListener("mouseleave", function(event){
+			controls.highlight([]);
 		});
 		
 		verticesContainer.appendChild(pointInfoEl);
@@ -251,21 +247,15 @@ async function loadFile(file){
 			+" | connects "+model.edges[e].a.id+" and "+model.edges[e].b.id+"</p>";
 		
 		edgeInfoEl.addEventListener("mouseenter", function(event){
-			
-			for(let i in model.points){
-				model.points[i].previewRender.color = cornerDefaultColor;
-			}
-			
-			for(let i in model.edges){
-				model.edges[i].previewRender.color = edgeDefaultColor;
-			}
-			
-			model.edges[e].previewRender.color = edgeHighlightColor;
-			model.edges[e].a.previewRender.color = cornerHighlightColor;
-			model.edges[e].b.previewRender.color = cornerHighlightColor;
-			
-			controls.update();
-			
+			controls.highlight([
+				model.edges[e],
+				model.edges[e].a,
+				model.edges[e].b,
+			]);
+		});
+		
+		edgeInfoEl.addEventListener("mouseleave", function(event){
+			controls.highlight([]);
 		});
 		
 		edgesContainer.appendChild(edgeInfoEl);
@@ -304,7 +294,7 @@ async function loadFile(file){
 	downloadLink.style.display = "block";
 	
 	
-	controls = new Controls(renderer);
+	controls = new Controls(model, renderer);
 	
 	//renderer.addEdges(model);
 	
@@ -453,6 +443,7 @@ function process3dData(data){
 		// deduplicate points
 		for(let vert = 0; vert < 9; vert += 3){
 			let point = {
+				type: "corner",
 				x: vertices[tri+vert],
 				y: vertices[tri+vert+1],
 				z: vertices[tri+vert+2],
@@ -483,6 +474,7 @@ function process3dData(data){
 		for(let e = 0; e < 3; e++){
 			
 			let edge = {
+				type: "edge",
 				a: trianglePoints[e],
 				b: trianglePoints[(e+1)%3],
 				triangles: [],

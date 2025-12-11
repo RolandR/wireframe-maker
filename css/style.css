@@ -152,5 +152,6 @@ input[type=file]{
 	background-color: #333;
 	margin-top: 15px;
 	margin-left: 5px;
+	max-width: 250px;
 	
 }
