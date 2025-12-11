@@ -6,7 +6,7 @@ function Renderer(canvasId){
 	canvas.width = document.getElementById("canvasContainer").clientWidth;
 	canvas.height = document.getElementById("canvasContainer").clientHeight;
 	
-	const gl = canvas.getContext("webgl", {preserveDrawingBuffer: true}) || canvas.getContext("experimental-webgl", {preserveDrawingBuffer: true});
+	const gl = canvas.getContext("webgl", {preserveDrawingBuffer: true, antialias: false}) || canvas.getContext("experimental-webgl", {preserveDrawingBuffer: true, antialias: false});
 
 	let shaderProgram;
 
@@ -14,6 +14,7 @@ function Renderer(canvasId){
 	let normalTransformRef;
 	let aspectRef;
 	let colorRef;
+	let idRef;
 	
 	let highlightedIndex = null;
 	let highlightColor = [1.0, 0.7, 0.0];
@@ -86,11 +87,12 @@ function Renderer(canvasId){
 		perspectiveRef = gl.getUniformLocation(shaderProgram, "perspective");
 		normalTransformRef = gl.getUniformLocation(shaderProgram, "normalTransform");
 		aspectRef = gl.getUniformLocation(shaderProgram, "aspect");
+		idRef = gl.getUniformLocation(shaderProgram, "partID");
 		objectColorRef = gl.getUniformLocation(shaderProgram, "objectColor");
 		
 	}
 	
-	function addObject(triangles, normals, color){
+	function addObject(triangles, normals, color, id, type){
 		
 		let vertexData = new Float32Array(triangles);
 		let normalsData = new Float32Array(normals);
@@ -98,6 +100,36 @@ function Renderer(canvasId){
 		if(!color){
 			color = defaultColor;
 		}
+		
+		if(!id){
+			id = 0;
+		}
+		
+		id = parseInt(id);
+		
+		let idArray = new Uint8Array(4);
+		
+		switch(type){
+			case "corner":
+				idArray[3] = 254;
+			break;
+			
+			case "edge":
+				idArray[3] = 253;
+			break;
+			
+			case "pin":
+				idArray[3] = 0;
+			break;
+			
+			default:
+				idArray[3] = 0;
+			break;
+		}
+		
+		idArray[2] = id%256;
+		idArray[1] = (id>>8)%256;
+		idArray[0] = (id>>16)%256;
 		
 		
 		let meshObject = {
@@ -108,6 +140,7 @@ function Renderer(canvasId){
 			normalsData: normalsData,
 			vertexBuffer: gl.createBuffer(),
 			normalsBuffer: gl.createBuffer(),
+			idArray: idArray,
 		};
 		
 		
@@ -162,6 +195,8 @@ function Renderer(canvasId){
 				continue;
 			}
 			
+			gl.uniform4iv(idRef, obj.idArray);
+			
 			gl.bindBuffer(gl.ARRAY_BUFFER, obj.vertexBuffer);
 			let coords = gl.getAttribLocation(shaderProgram, "coordinates");
 			gl.vertexAttribPointer(coords, 3, gl.FLOAT, false, 0, 0);
@@ -183,6 +218,7 @@ function Renderer(canvasId){
 	return{
 		addObject: addObject,
 		render: render,
+		context: gl,
 	};
 
 }

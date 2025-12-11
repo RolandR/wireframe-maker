@@ -1,8 +1,11 @@
 
 
-function Controls(){
+function Controls(renderer){
 	
-	var canvas = document.getElementById("renderCanvas");
+	const canvas = document.getElementById("renderCanvas");
+	const context = renderer.context;
+	
+	const contextInfoEl = document.getElementById("contextInfo");
 
 	var position = [0, 0, -1];
 	var rotationX = 0;
@@ -107,10 +110,13 @@ function Controls(){
 		update();
 	});
 
-	window.addEventListener("mousedown", function(e){
+	canvas.addEventListener("mousedown", function(e){
 		startX = e.clientX;
 		startY = e.clientY;
 		mouseDown = true;
+		
+		contextInfoEl.style.visibility = "hidden";
+		
 		e.preventDefault();
 	});
 
@@ -125,7 +131,73 @@ function Controls(){
 			update();
 			
 			e.preventDefault();
+		} else {
+			
 		}
+	});
+	
+	canvas.addEventListener("mousemove", function(e){
+		
+		if(!mouseDown){
+			
+			//console.log(e);
+			
+			let x = e.offsetX;
+			let y = e.offsetY;
+			
+			console.log(x, y);
+			
+			let pixels = new Uint8Array(4);
+			
+			context.readPixels(x, canvas.height-y, 1, 1, context.RGBA, context.UNSIGNED_BYTE, pixels);
+			
+			console.log(pixels);
+			
+			let mouseX = e.clientX;
+			let mouseY = e.clientY;
+			
+			//contextInfoEl.style.display = "block";
+			
+			if(pixels[3] != 0){
+				
+				let id = pixels[2];
+				id += pixels[1]<<8;
+				id += pixels[0]<<16;
+				
+				let type = "";
+				
+				switch(pixels[3]){
+					case 254:
+						type = "Corner";
+					break;
+					
+					case 253:
+						type = "Edge";
+					break;
+				};
+				
+				contextInfoEl.innerHTML = type + " " + id;
+				contextInfoEl.style.transform = "translate("+mouseX+"px, "+mouseY+"px)";
+				contextInfoEl.style.visibility = "visible";
+			
+			} else {
+				contextInfoEl.style.visibility = "hidden";
+			}
+			
+		}
+	});
+	
+	canvas.addEventListener("mouseenter", function(e){
+		
+		let x = e.clientX;
+		let y = e.clientY;
+		
+		contextInfoEl.style.visibility = "visible";
+		contextInfoEl.style.transform = "translate("+x+"px, "+y+"px)";
+	});
+	
+	canvas.addEventListener("mouseleave", function(e){
+		contextInfoEl.style.visibility = "hidden";
 	});
 
 	window.addEventListener("mouseup", function(e){

@@ -144,14 +144,26 @@ async function loadFile(file){
 		previewGeometry.triangles = previewGeometry.triangles.concat(cornerPreview.triangles);
 		previewGeometry.normals = previewGeometry.normals.concat(cornerPreview.normals);
 		
-		model.points[p].previewRender = renderer.addObject(cornerPreview.triangles, cornerPreview.normals, cornerDefaultColor);
+		model.points[p].previewRender = renderer.addObject(
+			cornerPreview.triangles,
+			cornerPreview.normals,
+			cornerDefaultColor,
+			model.points[p].id,
+			"corner",
+		);
 		
 		let pinsPreview = buildPinsPreview(model, p, params);
 		
 		previewGeometry.triangles = previewGeometry.triangles.concat(pinsPreview.triangles);
 		previewGeometry.normals = previewGeometry.normals.concat(pinsPreview.normals);
 		
-		model.points[p].previewPinsRender = renderer.addObject(pinsPreview.triangles, pinsPreview.normals, pinDefaultColor);
+		model.points[p].previewPinsRender = renderer.addObject(
+			pinsPreview.triangles,
+			pinsPreview.normals,
+			pinDefaultColor,
+			model.points[p].id,
+			"pin",
+		);
 		
 		await pMon.updateCount(p+1);
 	}
@@ -271,7 +283,13 @@ async function loadFile(file){
 		previewGeometry.triangles = previewGeometry.triangles.concat(edgePreview.triangles);
 		previewGeometry.normals = previewGeometry.normals.concat(edgePreview.normals);
 		
-		model.edges[e].previewRender = renderer.addObject(edgePreview.triangles, edgePreview.normals, edgeDefaultColor);
+		model.edges[e].previewRender = renderer.addObject(
+			edgePreview.triangles,
+			edgePreview.normals,
+			edgeDefaultColor,
+			model.edges[e].id,
+			"edge",
+		);
 		
 		await pMon.updateCount(e+1);
 	}
@@ -286,7 +304,7 @@ async function loadFile(file){
 	downloadLink.style.display = "block";
 	
 	
-	controls = new Controls();
+	controls = new Controls(renderer);
 	
 	//renderer.addEdges(model);
 	
