@@ -510,6 +510,7 @@ function process3dData(data){
 			triangle.edges[e].triangles.push(triangle);
 		}
 		
+		triangle.id = triangles.length;
 		triangle.normal = calculateNormalFromTriangle(triangle);
 		
 		triangles.push(triangle);
@@ -522,40 +523,54 @@ function process3dData(data){
 	let totalEdgeLength = 0;
 	
 	for(let e in edges){
+		
+		let edge = edges[e];
+		
 		let distance = Math.sqrt(
-			Math.pow(edges[e].a.x - edges[e].b.x, 2) +
-			Math.pow(edges[e].a.y - edges[e].b.y, 2) +
-			Math.pow(edges[e].a.z - edges[e].b.z, 2)
+			Math.pow(edge.a.x - edge.b.x, 2) +
+			Math.pow(edge.a.y - edge.b.y, 2) +
+			Math.pow(edge.a.z - edge.b.z, 2)
 		);
 		
-		edges[e].edgeLength = distance;
+		edge.edgeLength = distance;
 		
 		totalEdgeLength += distance;
 		
-		edges[e].connectionA = {
-			point: edges[e].b,
-			edge: edges[e],
+		edge.connectionA = {
+			point: edge.b,
+			edge: edge,
 		};
-		edges[e].a.connections.push(edges[e].connectionA);
+		edge.a.connections.push(edge.connectionA);
 		
-		edges[e].connectionB = {
-			point: edges[e].a,
-			edge: edges[e],
+		edge.connectionB = {
+			point: edge.a,
+			edge: edge,
 		};
-		edges[e].b.connections.push(edges[e].connectionB);
+		edge.b.connections.push(edge.connectionB);
 		
-		if(edges[e].triangles.length != 2){
-			console.warn("Edge "+e+" has unusual amount of bordering triangles ("+edges[e].triangles.length+" instead of 2)");
+		if(edge.triangles.length != 2){
+			console.warn("The edge connecting corners "+edge.a.id+" and "+edge.b.id+" has unusual amount of bordering triangles ("+edge.triangles.length+" instead of 2)");
 		}
 		
-		edges[e].normal = {x: 0, y: 0, z: 0};
-		for(let t in edges[e].triangles){
-			edges[e].normal.x += edges[e].triangles[t].normal.x;
-			edges[e].normal.y += edges[e].triangles[t].normal.y;
-			edges[e].normal.z += edges[e].triangles[t].normal.z;
+		edge.normal = {x: 0, y: 0, z: 0};
+		for(let t in edge.triangles){
+			edge.normal.x += edge.triangles[t].normal.x;
+			edge.normal.y += edge.triangles[t].normal.y;
+			edge.normal.z += edge.triangles[t].normal.z;
 		}
 		
-		edges[e].normal = normaliseVec3(edges[e].normal);
+		let vecLength = Math.sqrt(
+			Math.pow(edge.normal.x, 2) +
+			Math.pow(edge.normal.y, 2) +
+			Math.pow(edge.normal.z, 2)
+		);
+		
+		if(vecLength == 0){
+			console.error("The edge connecting corners "+edge.a.id+" and "+edge.b.id+" has normals which perfectly cancel out, which is weird");
+			edge.normal.z = 1;
+		}
+		
+		edge.normal = normaliseVec3(edge.normal);
 		
 	}
 	

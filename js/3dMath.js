@@ -22,7 +22,20 @@ function calculateNormalFromTriangle(triangle){
 	normal.y = a.z*b.x - a.x*b.z;
 	normal.z = a.x*b.y - a.y*b.x;
 	
-	return normaliseVec3(normal);
+	let vecLength = Math.sqrt(
+		Math.pow(normal.x, 2) +
+		Math.pow(normal.y, 2) +
+		Math.pow(normal.z, 2)
+	);
+	
+	if(vecLength == 0){
+		console.error("Triangle "+triangle.id+" has zero area!");
+			
+		normal.z = 1;
+	}
+	
+	normal = normaliseVec3(normal)
+	return normal;
 }
 
 function normaliseVec3(vector){

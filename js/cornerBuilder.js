@@ -67,6 +67,11 @@ function calculateCorner(wireframe, index, params){
 		
 		let calculatedLength = params.tubeOD/2 * (1/Math.tan(smallestAngle/2));
 		
+		if(calculatedLength == Infinity){
+			console.error("Two edges are parallel at point "+point.id+", which is impossible to model!");
+			calculatedLength = 1;
+		}
+		
 		connection.stickout = calculatedLength+params.margin;
 		
 		let distanceFromZAxis = Math.sqrt(Math.pow(unitToX, 2) + Math.pow(unitToY, 2));
@@ -106,7 +111,7 @@ function calculateCorner(wireframe, index, params){
 		let rotatedY = newY;
 		let rotatedZ = -newX*Math.sin(reverseYAngle) + newZ*Math.cos(reverseYAngle);
 		
-		// floating point errors can sometimes cause rotatedY to becom a smidge longer than 1
+		// floating point errors can sometimes cause rotatedY to become a smidge longer than 1
 		if(rotatedY > 1){
 			rotatedY = 1;
 		} else if(rotatedY < -1){
@@ -136,6 +141,11 @@ function calculateEdge(wireframe, index, params){
 	edge.distanceB = edge.connectionB.stickout + params.connectorToPipeMargin;
 	
 	edge.pipeLength = edge.edgeLength - (edge.distanceA + edge.distanceB);
+	
+	if(edge.pipeLength < 0){
+		console.error("The edge connecting corners "+edge.a.id+" and "+edge.b.id+" ends up too short, because another edge connects at too shallow an angle!");
+		edge.pipeLength = 1;
+	}
 	
 }
 
