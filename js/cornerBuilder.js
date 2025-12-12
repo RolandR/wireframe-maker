@@ -425,11 +425,11 @@ async function buildCorner(wireframe, index, params, letterShapes, cornerPMon){
 		
 		let insertSupport = CSG.cube({
 			center: [
-				params.tubeOD/2 - params.meltInsertLength/2,
+				params.tubeID/2 - params.meltInsertLength/2,
 				0,
 				pinPosition,
 			],
-			radius: [params.meltInsertLength/2, params.tubeOD/2, params.meltInsertSupportWidth/2],
+			radius: [params.meltInsertLength/2, params.tubeID/2, params.meltInsertSupportWidth/2],
 		});
 		
 		insertSupport = insertSupport.rotateZ(connection.pinZAngle+180);
