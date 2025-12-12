@@ -19,14 +19,15 @@ varying float fogness;
 
 void main(void){
 
-	highp vec3 ambientLight = vec3(0.3, 0.3, 0.37);
-    highp vec3 directionalLightColor = vec3(1.0, 0.95, 0.85);
+	highp vec3 ambientLight = vec3(0.5, 0.5, 0.55);
+    highp vec3 directionalLightColor = vec3(1.0, 0.95, 0.85)*0.7;
     highp vec3 directionalVector = normalize(vec3(-1.0, 1.0, 1.0));
     directionalVector = normalize((vec4(directionalVector, 1.0)*model).xyz);
     highp vec3 viewVector = normalize(vec3(0.0, 1.0, 0.0));
     viewVector = (vec4(viewVector, 1.0)*model).xyz;
 
-	highp float directional = clamp(dot(normalize(vertexNormal.xzy), directionalVector), 0.0, 1.0);
+	//highp float directional = clamp(dot(normalize(vertexNormal.xzy), directionalVector), 0.0, 1.0);
+	highp float directional = dot(normalize(vertexNormal.xzy), directionalVector);
 	
 	//float specular = min(dot(viewVector.xyz, reflect(directionalVector, normalize(vertexNormal.xzy))), 0.0);
 	//specular = pow(specular, 4.0);
