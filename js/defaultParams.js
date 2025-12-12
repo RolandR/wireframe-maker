@@ -5,6 +5,8 @@ const params = {
 	margin: 1.0,
 	hollowDiameter: 12.5,
 	pinHoleDiameter: 3.5,
+	meltInsertLength: 5.7,
+	meltInsertSupportWidth: 8,
 	connectorToPipeMargin: 1.0,
 	outsideResolution: 32,
 	insideResolution: 16,

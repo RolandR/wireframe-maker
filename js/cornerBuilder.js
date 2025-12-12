@@ -322,6 +322,8 @@ async function buildCorner(wireframe, index, params, letterShapes, cornerPMon){
 		let edge = connection.edge;
 		let other = connection.point;
 		
+		let pinPosition = connection.stickout + params.stickout/2;
+		
 		let cylinder = CSG.cylinder({
 			start: [0, 0, 0],
 			end: [
@@ -343,6 +345,22 @@ async function buildCorner(wireframe, index, params, letterShapes, cornerPMon){
 			radius: params.tubeID/2,
 			resolution: params.outsideResolution,
 		});
+		
+		// cylinder to fill up text from the inside
+		// and size the thread insert stabiliser
+		
+		let textDepthCylinder = CSG.cylinder({
+			start: [0, 0, connection.stickout],
+			end: [
+				0,
+				0,
+				connection.stickout + params.stickout,
+			],
+			radius: params.tubeID/2-params.textDepth,
+			resolution: params.outsideResolution,
+		});
+		
+		// Text
 		
 		let idText = setText(index + "");
 		idText.letters = idText.letters.scale([1, 1, 5]);
@@ -369,9 +387,6 @@ async function buildCorner(wireframe, index, params, letterShapes, cornerPMon){
 			.rotateX(90)
 			.rotateY(90)
 			.translate([0, params.tubeID/2, 0]);
-			
-		//idText = idText.subtract(textDifferenceCylinder);
-		//edgeText = edgeText.subtract(textDifferenceCylinder);
 		
 		idText = idText.translate([0, 0, connection.stickout+params.stickout-params.textMargin]);
 		edgeText = edgeText.translate([0, 0, connection.stickout+params.stickout-params.textMargin]);
@@ -385,18 +400,42 @@ async function buildCorner(wireframe, index, params, letterShapes, cornerPMon){
 		smallerCylinder = smallerCylinder.subtract(edgeText.rotateZ(connection.pinZAngle+textSeparationHalfAngle));
 		smallerCylinder = smallerCylinder.subtract(edgeText.rotateZ(connection.pinZAngle+180+textSeparationHalfAngle));
 		
-		let textDepthCylinder = CSG.cylinder({
+		smallerCylinder = smallerCylinder.union(textDepthCylinder);
+		
+		
+		// cut hollow the smaller cylinder end part
+		// (we need to do this now to allow for the thread insert support)
+		
+		let smallHollowCylinder = CSG.cylinder({
 			start: [0, 0, connection.stickout],
 			end: [
 				0,
 				0,
 				connection.stickout + params.stickout,
 			],
-			radius: params.tubeID/2-params.textDepth,
-			resolution: params.outsideResolution,
+			radius: params.hollowDiameter/2,
+			resolution: params.insideResolution,
 		});
 		
-		smallerCylinder = smallerCylinder.union(textDepthCylinder);
+		
+		smallerCylinder = smallerCylinder.subtract(smallHollowCylinder);
+		
+		
+		// Hot melt thread insert support
+		
+		let insertSupport = CSG.cube({
+			center: [
+				params.tubeOD/2 - params.meltInsertLength/2,
+				0,
+				pinPosition,
+			],
+			radius: [params.meltInsertLength/2, params.tubeOD/2, params.meltInsertSupportWidth/2],
+		});
+		
+		insertSupport = insertSupport.rotateZ(connection.pinZAngle+180);
+		insertSupport = insertSupport.intersect(textDepthCylinder);
+		
+		smallerCylinder = smallerCylinder.union(insertSupport);
 		
 		// cut out hole for pin
 		
@@ -411,12 +450,12 @@ async function buildCorner(wireframe, index, params, letterShapes, cornerPMon){
 			resolution: previewResolution,
 		});
 		
-		let pinPosition = connection.stickout + params.stickout/2;
-		
 		pinhole = pinhole.rotateZ(connection.pinZAngle);
 		pinhole = pinhole.translate([0, 0, pinPosition]);
 		
 		smallerCylinder = smallerCylinder.subtract(pinhole);
+		
+		/////////////////////////
 		
 		
 		cylinder = cylinder.union(smallerCylinder);
@@ -430,7 +469,7 @@ async function buildCorner(wireframe, index, params, letterShapes, cornerPMon){
 			end: [
 				0,
 				0,
-				connection.stickout+params.stickout*2,
+				connection.stickout,
 			],
 			radius: params.hollowDiameter/2,
 			resolution: params.insideResolution,
