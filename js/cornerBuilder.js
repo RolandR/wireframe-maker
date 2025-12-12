@@ -2,6 +2,31 @@
 
 let previewResolution = 16;
 
+let baseSphere = CSG.sphere({
+	center: [0, 0, 0],
+	radius: (params.tubeOD/2)*1.01,
+	resolution: previewResolution,
+});
+
+let baseCylinder = CSG.cylinder({
+	start: [0, 0, 0],
+	end: [
+		0,
+		0,
+		1
+	],
+	radius: params.tubeOD/2,
+	resolution: previewResolution,
+});
+
+let pinResolution = Math.max(3, Math.round(previewResolution/2));
+let basePin = CSG.cylinder({
+	start: [-params.tubeOD*0.7, 0, 0],
+	end: [params.tubeOD*0.7, 0, 0],
+	radius: (params.pinHoleDiameter)/2,
+	resolution: pinResolution,
+});
+
 function calculateCorner(wireframe, index, params){
 	
 	let point = wireframe.points[index];
@@ -156,17 +181,8 @@ function buildEdgePreview(wireframe, index, params){
 	let yPos = edge.a.y;
 	let zPos = edge.a.z;
 	
-	let cylinder = CSG.cylinder({
-		start: [0, 0, edge.distanceA],
-		end: [
-			0,
-			0,
-			edge.distanceA+edge.pipeLength,
-		],
-		radius: params.tubeOD/2,
-		resolution: previewResolution,
-	});
-	
+	let cylinder = baseCylinder.scale([1, 1, edge.pipeLength]);
+	cylinder = cylinder.translate([0, 0, edge.distanceA]);
 	cylinder = cylinder.rotateY(edge.yAngle);
 	cylinder = cylinder.rotateZ(edge.zAngle);
 	cylinder = cylinder.translate([xPos, yPos, zPos]);
@@ -197,16 +213,9 @@ function buildPinsPreview(wireframe, index, params){
 			z: other.z - zPos,
 		});
 		
-		let pin = CSG.cylinder({
-			start: [-params.tubeOD*0.7, 0, 0],
-			end: [params.tubeOD*0.7, 0, 0],
-			radius: (params.pinHoleDiameter)/2,
-			resolution: previewResolution,
-		});
-		
 		let pinPosition = connection.stickout + params.stickout/2;
 		
-		pin = pin.rotateZ(connection.pinZAngle);
+		let pin = basePin.rotateZ(connection.pinZAngle);
 		pin = pin.rotateY(connection.yAngle);
 		pin = pin.rotateZ(connection.zAngle);
 		pin = pin.translate([
@@ -247,11 +256,7 @@ function buildCornerPreview(wireframe, index, params){
 	
 	let cornerParts = [];
 	
-	let corner = CSG.sphere({
-		center: [xPos, yPos, zPos],
-		radius: (params.tubeOD/2)*1.01,
-		resolution: previewResolution,
-	});
+	let corner = baseSphere.translate([xPos, yPos, zPos]);
 	
 	cornerParts.push(corner);
 	
@@ -261,17 +266,7 @@ function buildCornerPreview(wireframe, index, params){
 		let edge = connection.edge;
 		let other = connection.point;
 		
-		let cylinder = CSG.cylinder({
-			start: [0, 0, 0],
-			end: [
-				0,
-				0,
-				connection.stickout,
-			],
-			radius: params.tubeOD/2,
-			resolution: previewResolution,
-		});
-		
+		let cylinder = baseCylinder.scale([1, 1, connection.stickout]);
 		cylinder = cylinder.rotateY(connection.yAngle);
 		cylinder = cylinder.rotateZ(connection.zAngle);
 		cylinder = cylinder.translate([xPos, yPos, zPos]);
